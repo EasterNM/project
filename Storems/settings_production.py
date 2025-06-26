@@ -85,3 +85,14 @@ LOGGING = {
         },
     },
 }
+
+# PWA Configuration for Production
+PWA_APP_NAME = 'Storems - Store Management System'
+PWA_APP_DESCRIPTION = "Store Management System for inventory, products, and orders"
+PWA_APP_THEME_COLOR = '#667eea'
+PWA_APP_BACKGROUND_COLOR = '#ffffff'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_ORIENTATION = 'any'
+PWA_APP_START_URL = '/'
+PWA_APP_STATUS_BAR_COLOR = 'default'

@@ -31,6 +31,7 @@ urlpatterns = [
     path('orders/', include('App_OrderingProductForSale.urls', namespace='orders')),
     path('customers/', include('App_Customer.urls', namespace='customers')),
     path('suppliers/', include('App_Supplier.urls', namespace='suppliers')),
+    path('', include('pwa.urls')),  # PWA URLs
 ]
 
 if settings.DEBUG:
