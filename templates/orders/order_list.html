@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รายการออเดอร์ - Storems{% endblock %}
+
+{% block page_title %}รายการออเดอร์{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    
+
+    
+    
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            
+            
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 bg-indigo-50">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">ค้นหาและกรองออเดอร์</h3>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+                    <form method="get" action="{% url 'orders:order_list' %}" class="flex space-x-4">
+                        <div class="w-64">
+                            <label for="status" class="block text-sm font-medium text-gray-700">สถานะ</label>
+                            <select id="status" name="status" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="ALL" {% if status_filter == 'ALL' or not status_filter %}selected{% endif %}>ทุกสถานะ</option>
+                                {% for status_code, status_display in status_choices %}
+                                    <option value="{{ status_code }}" {% if status_filter == status_code %}selected{% endif %}>{{ status_display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-end">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                ค้นหา
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="border-t border-gray-200">
+                    {% if orders %}
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            รหัสออเดอร์
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            ลูกค้า
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            วันที่สร้าง
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            สถานะ
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            สร้างโดย
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            จัดการ
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for order in orders %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {{ order.order_id }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ order.customer.name }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ order.created_at|date:"d/m/Y H:i" }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% if order.status == 'PENDING' %}
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        รอดำเนินการ
+                                                    </span>
+                                                {% elif order.status == 'PROCESSING' %}
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                        กำลังดำเนินการ
+                                                    </span>
+                                                {% elif order.status == 'COMPLETED' %}
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                        เสร็จสิ้น
+                                                    </span>
+                                                {% elif order.status == 'CANCELLED' %}
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                        ยกเลิก
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ order.created_by.get_full_name }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <a href="{% url 'orders:order_detail' order_id=order.order_id %}" class="text-indigo-600 hover:text-indigo-900">ดูรายละเอียด</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">ไม่พบออเดอร์</h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                ยังไม่มีออเดอร์ที่ตรงกับเงื่อนไขการค้นหา
+                            </p>
+                            <div class="mt-6">
+                                <a href="{% url 'orders:create_order' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                    สร้างออเดอร์ใหม่
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

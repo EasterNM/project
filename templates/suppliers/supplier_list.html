@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ซัพพลายเออร์ทั้งหมด - Storems{% endblock %}
+
+{% block page_title %}ข้อมูลซัพพลายเออร์{% endblock %}
+{% block page_actions %}
+<a href="{% url 'suppliers:supplier_add' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+    เพิ่มซัพพลายเออร์ใหม่
+</a>
+{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    
+
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Stats -->
+            <div class="mt-4">
+                <dl class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ซัพพลายเออร์ทั้งหมด</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ total_suppliers }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ซัพพลายเออร์ที่ใช้งานอยู่</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-green-600">{{ active_suppliers }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ผู้ผลิต</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-indigo-600">{{ manufacturer_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ผู้จัดจำหน่าย</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-blue-600">{{ distributor_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ผู้ให้บริการ</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-purple-600">{{ service_count }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Filters -->
+            <div class="mt-8 bg-white shadow rounded-lg p-6">
+                <div class="mb-4">
+                    <h2 class="text-lg font-medium text-gray-900">ค้นหาและกรองข้อมูล</h2>
+                </div>
+                <form method="GET" action="{% url 'suppliers:supplier_list' %}" class="grid grid-cols-1 gap-4 md:grid-cols-4">
+                    <div>
+                        <label for="q" class="block text-sm font-medium text-gray-700">ค้นหา</label>
+                        <input type="text" name="q" id="q" value="{{ search_query|default:'' }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="ชื่อ, รหัส, อีเมล, โทรศัพท์">
+                    </div>
+                    
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700">ประเภท</label>
+                        <select name="category" id="category" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">ทั้งหมด</option>
+                            <option value="manufacturer" {% if category_filter == 'manufacturer' %}selected{% endif %}>ผู้ผลิต</option>
+                            <option value="distributor" {% if category_filter == 'distributor' %}selected{% endif %}>ผู้จัดจำหน่าย</option>
+                            <option value="service" {% if category_filter == 'service' %}selected{% endif %}>ผู้ให้บริการ</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700">สถานะ</label>
+                        <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">ทั้งหมด</option>
+                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>ใช้งาน</option>
+                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>ไม่ใช้งาน</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-end">
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            ค้นหา
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Suppliers Table -->
+            <div class="mt-8 flex flex-col">
+                <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            ชื่อบริษัท
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            ผู้ติดต่อ
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            ประเภท
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            สถานะ
+                                        </th>
+                                        <th scope="col" class="relative px-6 py-3">
+                                            <span class="sr-only">ดูรายละเอียด</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for supplier in suppliers %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div>
+                                                        <div class="text-sm font-medium text-gray-900">
+                                                            {{ supplier.company_name }}
+                                                        </div>
+                                                        <div class="text-sm text-gray-500">
+                                                            {{ supplier.supplier_code|default:"" }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ supplier.contact_name }}</div>
+                                                <div class="text-sm text-gray-500">{{ supplier.phone_number }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if supplier.category == 'manufacturer' %}bg-indigo-100 text-indigo-800{% elif supplier.category == 'distributor' %}bg-blue-100 text-blue-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                                                    {{ supplier.get_category_display }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if supplier.status == 'active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                                    {{ supplier.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <a href="{% url 'suppliers:supplier_detail' supplier.id %}" class="text-indigo-600 hover:text-indigo-900">รายละเอียด</a>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
+                                                ไม่พบข้อมูลซัพพลายเออร์
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

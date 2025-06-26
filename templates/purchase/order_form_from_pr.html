@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}สร้างใบสั่งซื้อจากใบขอซื้อ {{ requisition.pr_number }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border-color: #d1d5db;
+        border-radius: 0.375rem;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}สร้างใบสั่งซื้อจากใบขอซื้อ{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- PR Summary Card -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">ข้อมูลใบขอซื้อ</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">ใบขอซื้อที่ใช้อ้างอิงในการสร้างใบสั่งซื้อนี้</p>
+                    </div>
+                    <div>
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            อนุมัติแล้ว
+                        </span>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200">
+                    <dl>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">เลขที่ใบขอซื้อ</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ requisition.pr_number }}</dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">แผนก</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ requisition.department }}</dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">ผู้ขอซื้อ</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ requisition.requested_by.get_full_name }}</dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">วันที่ต้องการใช้งาน</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ requisition.required_date|date:"d/m/Y" }}</dd>
+                        </div>
+                        {% if requisition.remarks %}
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">หมายเหตุ</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ requisition.remarks }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">ข้อมูลใบสั่งซื้อ</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">กรอกข้อมูลทั่วไปของใบสั่งซื้อ</p>
+                    </div>
+                    <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                            <div class="sm:col-span-3">
+                                <label for="supplier" class="block text-sm font-medium text-gray-700">ผู้ขาย <span class="text-red-600">*</span></label>
+                                <div class="mt-1">
+                                    <select id="supplier" name="supplier" required class="supplier-select shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        <option value="">-- เลือกผู้ขาย --</option>
+                                        {% for supplier in suppliers %}
+                                            <option value="{{ supplier.id }}">{{ supplier.company_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">กำหนดส่ง <span class="text-red-600">*</span></label>
+                                <div class="mt-1">
+                                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" value="{{ today|date:'Y-m-d' }}" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="status" class="block text-sm font-medium text-gray-700">สถานะ</label>
+                                <div class="mt-1">
+                                    <select id="status" name="status" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        <option value="draft" selected>ร่าง</option>
+                                        <option value="pending_approval">ส่งอนุมัติ</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">รายการสินค้าที่สั่งซื้อ</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">รายการสินค้าจากใบขอซื้อ (กรอกราคาสำหรับแต่ละรายการ)</p>
+                    </div>
+                    <div class="border-t border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200" id="items-table">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สินค้า</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวน</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ราคาต่อหน่วย <span class="text-red-600">*</span></th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">มูลค่ารวม</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายละเอียด</th>
+                                </tr>
+                            </thead>
+                            <tbody id="item-rows" class="bg-white divide-y divide-gray-200">
+                                {% for detail in details %}
+                                <tr class="item-row">
+                                    <input type="hidden" name="product_id" value="{{ detail.product.id }}">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ detail.product.name }}</div>
+                                        <div class="text-sm text-gray-500">รหัส: {{ detail.product.sku }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="number" name="quantity" value="{{ detail.quantity }}" min="1" required class="quantity-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="number" name="unit_price" value="0" min="0.01" step="0.01" required class="price-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="subtotal">0.00</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ detail.description|default:"-" }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-gray-50">
+                                <tr>
+                                    <td colspan="3" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">รวมทั้งสิ้น:</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" id="total-amount">0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <a href="{% url 'purchase:requisition_detail' pr_number=requisition.pr_number %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3">
+                        ยกเลิก
+                    </a>
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        สร้างใบสั่งซื้อ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Select2 for supplier select
+        $('.supplier-select').select2({
+            placeholder: "เลือกผู้ขาย",
+            allowClear: true,
+            width: '100%'
+        });
+        
+        // Function to safely convert string to float
+        function safeParseFloat(value) {
+            if (typeof value === 'number') return value;
+            if (!value) return 0;
+            // Remove any commas and non-numeric characters except decimal point
+            const cleanValue = String(value).replace(/,/g, '').replace(/[^\d.-]/g, '');
+            const parsed = parseFloat(cleanValue);
+            return isNaN(parsed) ? 0 : Math.abs(parsed); // Always return positive number
+        }
+        
+        // Calculate subtotal for an item row
+        function calculateSubtotal(row) {
+            try {
+                // Get input elements
+                const quantityInput = $(row).find('.quantity-input');
+                const priceInput = $(row).find('.price-input');
+                const subtotalElement = $(row).find('.subtotal');
+                
+                // Get and validate values
+                let quantity = safeParseFloat(quantityInput.val() || '0');
+                let price = safeParseFloat(priceInput.val() || '0');
+                
+                // Ensure minimum values and convert to numbers
+                quantity = Math.max(0, parseInt(quantity) || 0);
+                price = Math.max(0, parseFloat(price) || 0);
+                
+                // Update input values with formatted numbers
+                quantityInput.val(quantity > 0 ? quantity.toString() : '');
+                priceInput.val(price > 0 ? price.toFixed(2) : '');
+                
+                // Calculate and display subtotal
+                const subtotal = (quantity * price) || 0; // Ensure we get 0 if calculation fails
+                subtotalElement.text(subtotal.toFixed(2));
+                
+                calculateTotal();
+            } catch (error) {
+                console.error('Error in calculateSubtotal:', error);
+                // Set safe default values if calculation fails
+                $(row).find('.subtotal').text('0.00');
+                calculateTotal();
+            }
+        }
+        
+        // Calculate total amount
+        function calculateTotal() {
+            try {
+                let total = 0;
+                $('.subtotal').each(function() {
+                    const value = $(this).text().trim();
+                    const subtotal = safeParseFloat(value);
+                    if (!isNaN(subtotal) && isFinite(subtotal)) {
+                        total += subtotal;
+                    }
+                });
+                $('#total-amount').text((total || 0).toFixed(2));
+        }
+        
+        // Update price indicators
+        function updatePriceIndicator(priceInput, source, date) {
+            priceInput.removeClass('bg-green-50 bg-blue-50');
+            if (source === 'product_supplier') {
+                priceInput.addClass('bg-green-50');
+                priceInput.attr('title', 'ราคาจากข้อมูลซัพพลายเออร์');
+            } else if (source === 'purchase_order') {
+                priceInput.addClass('bg-blue-50');
+                priceInput.attr('title', `ราคาจากใบสั่งซื้อล่าสุด (${date})`);
+            }
+        }
+        
+        // Calculate initial subtotals
+        $('.item-row').each(function() {
+            calculateSubtotal(this);
+        });
+        
+        // Recalculate subtotal when quantity or price changes
+        $(document).on('input', '.quantity-input, .price-input', function() {
+            try {
+                const input = $(this);
+                const isPrice = input.hasClass('price-input');
+                let value = input.val().trim();
+                
+                // Remove commas from input value
+                value = value.replace(/,/g, '');
+                
+                // Allow empty values during typing
+                if (value === '') {
+                    if (isPrice) {
+                        input.val('0.00');
+                    } else {
+                        input.val('0');
+                    }
+                    calculateSubtotal(input.closest('tr'));
+                    return;
+                }
+                
+                // Parse and validate the number
+                const parsed = safeParseFloat(value);
+                if (parsed > 0) {
+                    // Format with 2 decimal places for prices, whole numbers for quantities
+                    input.val(isPrice ? parsed.toFixed(2) : Math.floor(parsed).toString());
+                } else {
+                    input.val(isPrice ? '0.00' : '0');
+                }
+                
+                calculateSubtotal(input.closest('tr'));
+            } catch (error) {
+                console.error('Error in input handler:', error);
+                // Set safe default value
+                const input = $(this);
+                input.val(input.hasClass('price-input') ? '0.00' : '0');
+                calculateSubtotal(input.closest('tr'));
+            }
+        });
+        
+        // Fetch and auto-fill product prices when supplier changes
+        $('#supplier').on('change', function() {
+            const supplierId = $(this).val();
+            const supplierName = $(this).find('option:selected').text();
+            
+            if (supplierId) {
+                // Show loading indicator
+                $('.price-input').val('').attr('placeholder', 'กำลังโหลด...');
+                
+                // Fetch product prices for this supplier
+                $.ajax({
+                    url: `/purchase/api/product-prices/${supplierId}/`,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // For each product in the table, set its price if available
+                            $('.item-row').each(function() {
+                                const row = $(this);
+                                const productId = row.find('input[name="product_id"]').val();
+                                const priceInput = row.find('.price-input');
+                                const priceData = response.product_prices[productId];
+                                
+                                if (priceData && priceData.unit_price) {
+                                    // Ensure we have a valid number from the API
+                                    const price = safeParseFloat(priceData.unit_price);
+                                    if (price > 0) {
+                                        priceInput.val(price.toFixed(2));
+                                    } else {
+                                        priceInput.val('0.00');
+                                    }
+                                    
+                                    // Show price source indicator
+                                    updatePriceIndicator(priceInput, priceData.source, priceData.order_date);
+                                    
+                                    // Show minimum order quantity if applicable
+                                    if (priceData.min_qty && priceData.min_qty > 1) {
+                                        const qtyInput = row.find('.quantity-input');
+                                        if (safeParseFloat(qtyInput.val()) < priceData.min_qty) {
+                                            qtyInput.addClass('border-yellow-500');
+                                            qtyInput.attr('title', `จำนวนสั่งซื้อขั้นต่ำ: ${priceData.min_qty}`);
+                                        }
+                                    }
+                                } else {
+                                    priceInput.val('0.00');
+                                    priceInput.removeClass('bg-green-50 bg-blue-50').removeAttr('title');
+                                }
+                                
+                                calculateSubtotal(row);
+                            });
+                        } else {
+                            console.error('Price fetch error:', response.error);
+                            if (response.traceback) {
+                                console.error('Traceback:', response.traceback);
+                            }
+                            alert(`เกิดข้อผิดพลาดในการดึงข้อมูลราคา: ${response.error}`);
+                            $('.price-input').attr('placeholder', '');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX error:', {xhr, status, error});
+                        alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+                        $('.price-input').attr('placeholder', '');
+                    }
+                });
+            } else {
+                // Clear prices if no supplier selected
+                $('.price-input').val('0.00').removeClass('bg-green-50 bg-blue-50').removeAttr('title');
+                $('.quantity-input').removeClass('border-yellow-500').removeAttr('title');
+                $('.item-row').each(function() {
+                    calculateSubtotal(this);
+                });
+            }
+        });
+        
+        // Form validation before submit
+        $('form').on('submit', function(e) {
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Check supplier
+            if (!$('#supplier').val()) {
+                isValid = false;
+                errorMessage = 'กรุณาเลือกผู้ขาย';
+            }
+            
+            // Check quantities and prices
+            $('.item-row').each(function(index) {
+                const row = $(this);
+                const quantity = safeParseFloat(row.find('.quantity-input').val());
+                const price = safeParseFloat(row.find('.price-input').val());
+                
+                if (quantity <= 0) {
+                    isValid = false;
+                    errorMessage = `กรุณาระบุจำนวนที่มากกว่า 0 สำหรับสินค้าลำดับที่ ${index + 1}`;
+                }
+                
+                if (price <= 0) {
+                    isValid = false;
+                    errorMessage = `กรุณาระบุราคาที่มากกว่า 0 สำหรับสินค้าลำดับที่ ${index + 1}`;
+                }
+            });
+            
+            // Show error message and prevent form submission if validation fails
+            if (!isValid) {
+                e.preventDefault();
+                alert(errorMessage);
+            }
+        });
+        
+        // Set initial values
+        $('.price-input').val('0.00');
+        calculateTotal();
+    });
+</script>
+{% endblock %}

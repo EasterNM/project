@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รายการรับสินค้า{% endblock %}
+
+{% block page_title %}รายการรับสินค้า{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Filter Form -->
+        <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6 mb-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">ค้นหาข้อมูล</h2>
+            <form method="get" action="{% url 'purchase:receipt_list' %}">
+                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <div class="sm:col-span-2">
+                        <label for="po" class="block text-sm font-medium text-gray-700">เลขที่ใบสั่งซื้อ</label>
+                        <div class="mt-1">
+                            <input type="text" name="po" id="po" value="{{ po_filter }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="date_from" class="block text-sm font-medium text-gray-700">ตั้งแต่วันที่</label>
+                        <div class="mt-1">
+                            <input type="date" name="date_from" id="date_from" value="{{ date_from }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="date_to" class="block text-sm font-medium text-gray-700">ถึงวันที่</label>
+                        <div class="mt-1">
+                            <input type="date" name="date_to" id="date_to" value="{{ date_to }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5 text-right">
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        ค้นหา
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Receipts Table -->
+        <div class="flex flex-col bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="align-middle inline-block min-w-full">
+                <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัส</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ใบสั่งซื้อ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่รับสินค้า</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้รับสินค้า</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนรับ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">การจัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for receipt in receipts %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">GR-{{ receipt.id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ receipt.purchase_order.po_number }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ receipt.receipt_date|date:"d/m/Y H:i" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ receipt.received_by.get_full_name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ receipt.total_quantity_received }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="{% url 'purchase:receipt_detail' receipt_id=receipt.id %}" class="text-indigo-600 hover:text-indigo-900">รายละเอียด</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">ไม่พบข้อมูลการรับสินค้า</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

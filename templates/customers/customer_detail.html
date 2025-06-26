@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ customer.name }} - รายละเอียดลูกค้า{% endblock %}
+
+{% block page_title %}รายละเอียดลูกค้า: {{ customer.name }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'customers:customer_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+    กลับรายการ
+</a>
+<a href="{% url 'customers:customer_edit' customer_id=customer.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+    แก้ไขข้อมูล
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <!-- ข้อมูลหลักลูกค้า -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">ข้อมูลลูกค้า</h3>
+                                <p class="mt-1 max-w-2xl text-sm text-gray-500">รายละเอียดข้อมูลส่วนตัวและการติดต่อ</p>
+                            </div>
+                            <div>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {% if customer.status == 'active' %}bg-green-100 text-green-800{% elif customer.status == 'inactive' %}bg-gray-100 text-gray-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ customer.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-200">
+                            <dl>
+                                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">รหัสลูกค้า</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.customer_code }}</dd>
+                                </div>
+                                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">ชื่อลูกค้า/บริษัท</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.name }}</dd>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">ประเภทลูกค้า</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.get_customer_type_display }}</dd>
+                                </div>
+                                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">ชื่อผู้ติดต่อ</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.contact_name|default:"-" }}</dd>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">ตำแหน่ง</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.contact_title|default:"-" }}</dd>
+                                </div>
+                                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">อีเมล</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                        {% if customer.email %}
+                                            <a href="mailto:{{ customer.email }}" class="text-indigo-600 hover:text-indigo-900">{{ customer.email }}</a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">โทรศัพท์</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.phone_number|default:"-" }}</dd>
+                                </div>
+                                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">แฟกซ์</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.fax_number|default:"-" }}</dd>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">เว็บไซต์</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                        {% if customer.website %}
+                                            <a href="{{ customer.website }}" target="_blank" class="text-indigo-600 hover:text-indigo-900">{{ customer.website }}</a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">ที่อยู่</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                        {% if customer.address %}
+                                            {{ customer.address }}
+                                            {% if customer.city %}<br>{{ customer.city }}{% endif %}
+                                            {% if customer.state %} {{ customer.state }}{% endif %}
+                                            {% if customer.postal_code %} {{ customer.postal_code }}{% endif %}
+                                            {% if customer.country %}<br>{{ customer.country }}{% endif %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">เลขประจำตัวผู้เสียภาษี</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.tax_id|default:"-" }}</dd>
+                                </div>
+                                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">ระดับราคา</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.get_price_tier_display }}</dd>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">วงเงินเครดิต</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.credit_limit|floatformat:0 }} บาท</dd>
+                                </div>
+                                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">เครดิตเทอม</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.credit_term }} วัน</dd>
+                                </div>
+                                {% if customer.notes %}
+                                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500">หมายเหตุ</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ customer.notes }}</dd>
+                                </div>
+                                {% endif %}
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- ประวัติการติดต่อ -->
+                    <div class="mt-6">
+                        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                            <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">ประวัติการติดต่อ</h3>
+                                    <p class="mt-1 max-w-2xl text-sm text-gray-500">บันทึกการติดต่อกับลูกค้า</p>
+                                </div>
+                                <button id="add-contact-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">
+                                    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                    เพิ่มบันทึก
+                                </button>
+                            </div>
+
+                            <!-- ฟอร์มเพิ่มประวัติการติดต่อ -->
+                            <div id="add-contact-form" class="hidden border-t border-gray-200 px-4 py-5 sm:p-6">
+                                <form method="post" action="{% url 'customers:add_contact_history' customer_id=customer.id %}">
+                                    {% csrf_token %}
+                                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                        <div>
+                                            <label for="contact_type" class="block text-sm font-medium text-gray-700">ประเภทการติดต่อ</label>
+                                            <select id="contact_type" name="contact_type" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                                                <option value="phone">โทรศัพท์</option>
+                                                <option value="email">อีเมล</option>
+                                                <option value="meeting">ประชุม</option>
+                                                <option value="visit">เยี่ยมชม</option>
+                                                <option value="other">อื่นๆ</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="contact_date" class="block text-sm font-medium text-gray-700">วันที่ติดต่อ</label>
+                                            <input type="datetime-local" id="contact_date" name="contact_date" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label for="subject" class="block text-sm font-medium text-gray-700">หัวข้อ</label>
+                                            <input type="text" id="subject" name="subject" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label for="description" class="block text-sm font-medium text-gray-700">รายละเอียด</label>
+                                            <textarea id="description" name="description" rows="3" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="mt-6 flex justify-end space-x-3">
+                                        <button type="button" id="cancel-add-contact" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            ยกเลิก
+                                        </button>
+                                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                                            บันทึก
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- รายการประวัติการติดต่อ -->
+                            {% if contact_histories %}
+                            <div class="border-t border-gray-200">
+                                <ul class="divide-y divide-gray-200">
+                                    {% for contact in contact_histories %}
+                                    <li class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        {{ contact.get_contact_type_display }}
+                                                    </span>
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">{{ contact.subject }}</div>
+                                                    <div class="text-sm text-gray-500">{{ contact.description }}</div>
+                                                    <div class="text-xs text-gray-400 mt-1">
+                                                        {{ contact.contact_date|date:"d M Y H:i" }} โดย {{ contact.contacted_by.get_full_name|default:contact.contacted_by.username }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <form method="post" action="{% url 'customers:delete_contact_history' customer_id=customer.id contact_id=contact.id %}" class="inline" onsubmit="return confirm('คุณแน่ใจหรือไม่ที่จะลบบันทึกนี้?')">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="text-red-600 hover:text-red-900 text-sm">ลบ</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% else %}
+                            <div class="border-t border-gray-200 text-center py-6">
+                                <p class="text-sm text-gray-500">ยังไม่มีประวัติการติดต่อ</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- แผงข้อมูลด้านขาง -->
+                <div class="space-y-6">
+                    <!-- สถิติลูกค้า -->
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">สถิติ</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">จำนวนออเดอร์ทั้งหมด</div>
+                                    <div class="text-2xl font-semibold text-gray-900">{{ total_orders }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">ยอดขายรวม</div>
+                                    <div class="text-2xl font-semibold text-gray-900">{{ total_order_amount|floatformat:0 }} บาท</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">ประวัติการติดต่อ</div>
+                                    <div class="text-2xl font-semibold text-gray-900">{{ contact_histories.count }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ออเดอร์ล่าสุด -->
+                    {% if recent_orders %}
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">ออเดอร์ล่าสุด</h3>
+                            <div class="space-y-3">
+                                {% for order in recent_orders %}
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ order.order_id }}</div>
+                                        <div class="text-xs text-gray-500">{{ order.created_at|date:"d M Y" }}</div>
+                                    </div>
+                                    <div class="text-sm font-semibold text-gray-900">{{ order.total_amount|floatformat:0 }} บาท</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- ข้อมูลระบบ -->
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">ข้อมูลระบบ</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">วันที่สร้าง</div>
+                                    <div class="text-sm text-gray-900">{{ customer.created_at|date:"d M Y H:i" }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">อัปเดตล่าสุด</div>
+                                    <div class="text-sm text-gray-900">{{ customer.updated_at|date:"d M Y H:i" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addContactBtn = document.getElementById('add-contact-btn');
+        const cancelAddContactBtn = document.getElementById('cancel-add-contact');
+        const addContactForm = document.getElementById('add-contact-form');
+        
+        // โชว์/ซ่อนฟอร์มเพิ่มประวัติการติดต่อ
+        addContactBtn.addEventListener('click', function() {
+            addContactForm.classList.toggle('hidden');
+            
+            // ตั้งค่าวันที่เป็นวันเวลาปัจจุบัน
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('contact_date').value = now.toISOString().slice(0, 16);
+        });
+        
+        // ปิดฟอร์ม
+        cancelAddContactBtn.addEventListener('click', function() {
+            addContactForm.classList.add('hidden');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if item %}แก้ไขสินค้าในคลัง{% else %}เพิ่มสินค้าในคลัง{% endif %} - Storems{% endblock %}
+
+{% block page_title %}{% if item %}แก้ไขสินค้าในคลัง{% else %}เพิ่มสินค้าในคลัง{% endif %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Form Card -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        
+                        <!-- Form Group: Product Selection -->
+                        <div class="mb-6">
+                            <label for="product" class="block text-sm font-medium text-gray-700 mb-1">สินค้า *</label>
+                            <select id="product" name="product" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" required>
+                                <option value="">เลือกสินค้า</option>
+                                {% for product in products %}
+                                    <option value="{{ product.id }}" {% if item.product.id == product.id %}selected{% endif %}>{{ product.name }} (SKU: {{ product.sku }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Form Group: Serial Number (Displayed for Existing Items) -->
+                        {% if item %}
+                        <div class="mb-6">
+                            <label for="serial_number" class="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
+                            <input type="text" id="serial_number" name="serial_number" value="{{ item.serial_number }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100" readonly>
+                            <p class="mt-1 text-xs text-gray-500">Serial Number จะถูกสร้างอัตโนมัติสำหรับสินค้าใหม่</p>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Form Group: Location -->
+                        <div class="mb-6">
+                            <label for="location" class="block text-sm font-medium text-gray-700 mb-1">ตำแหน่งจัดเก็บ *</label>
+                            <select id="location" name="location" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" required>
+                                <option value="">เลือกตำแหน่งจัดเก็บ</option>
+                                {% for location in locations %}
+                                    <option value="{{ location.id }}" {% if item.location.id == location.id %}selected{% endif %}>{{ location.location_code }} - {{ location.location_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Form Group: Status -->
+                        <div class="mb-6">
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">สถานะ *</label>
+                            <select id="status" name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" required>
+                                <option value="available" {% if item.status == 'available' %}selected{% endif %}>พร้อมใช้งาน</option>
+                                <option value="reserved" {% if item.status == 'reserved' %}selected{% endif %}>จองแล้ว</option>
+                                <option value="sold" {% if item.status == 'sold' %}selected{% endif %}>ขายแล้ว</option>
+                                <option value="damaged" {% if item.status == 'damaged' %}selected{% endif %}>เสียหาย</option>
+                                <option value="expired" {% if item.status == 'expired' %}selected{% endif %}>หมดอายุ</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Form Group: Lot Number -->
+                        <div class="mb-6">
+                            <label for="lot_number" class="block text-sm font-medium text-gray-700 mb-1">Lot/Batch Number</label>
+                            <input type="text" id="lot_number" name="lot_number" value="{{ item.lot_number }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <!-- Form Group: Receipt Date -->
+                        <div class="mb-6">
+                            <label for="received_date" class="block text-sm font-medium text-gray-700 mb-1">วันที่รับเข้า</label>
+                            <input type="datetime-local" id="received_date" name="received_date" value="{% if item.received_date %}{{ item.received_date|date:'Y-m-d\TH:i' }}{% endif %}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <!-- Form Group: Expiry Date -->
+                        <div class="mb-6">
+                            <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-1">วันที่หมดอายุ</label>
+                            <input type="date" id="expiry_date" name="expiry_date" value="{% if item.expiry_date %}{{ item.expiry_date|date:'Y-m-d' }}{% endif %}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <a href="{% url 'inventory:item_list' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2">
+                                ยกเลิก
+                            </a>
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                {% if item %}บันทึกการแก้ไข{% else %}เพิ่มสินค้า{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,751 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Storems{% endblock %}
+
+{% block nav_general %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}ภาพรวมระบบ Storems{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'products:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7" />
+    </svg>
+    จัดการสินค้า
+</a>
+<a href="{% url 'orders:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8" />
+    </svg>
+    ระบบขาย
+</a>
+<a href="{% url 'purchase:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
+    </svg>
+    ระบบจัดซื้อ
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            
+            <!-- Welcome Section -->
+            <div class="mb-8 bg-gradient-to-r from-blue-600 to-indigo-600 shadow rounded-lg">
+                <div class="px-6 py-8 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold">ยินดีต้อนรับสู่ระบบ Storems</h2>
+                            <p class="mt-2 text-blue-100">ระบบจัดการคลังสินค้าและการขายแบบครบวงจร</p>
+                            <p class="text-sm text-blue-200 mt-1">วันที่: {{ today|date:"d M Y" }} | เวลา: {% now "H:i" %} น.</p>
+                        </div>
+                        <div class="hidden lg:block">
+                            <svg class="h-24 w-24 text-white opacity-20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Section -->
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">สถิติภาพรวม</h3>
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    
+                    <!-- สินค้า -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7" />
+                                    </svg>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">สินค้าทั้งหมด</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900">{{ total_products|default:0 }}</div>
+                                        <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                                            +{{ new_products_this_month|default:0 }}
+                                            <span class="text-gray-400 ml-1">เดือนนี้</span>
+                                        </div>
+                                    </dd>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 px-4 py-4 sm:px-6">
+                            <div class="text-sm">
+                                <a href="{% url 'products:dashboard' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                                    จัดการสินค้า →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ลูกค้า -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">ลูกค้าทั้งหมด</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900">{{ total_customers|default:0 }}</div>
+                                        <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                                            +{{ new_customers_this_month|default:0 }}
+                                            <span class="text-gray-400 ml-1">เดือนนี้</span>
+                                        </div>
+                                    </dd>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 px-4 py-4 sm:px-6">
+                            <div class="text-sm">
+                                <a href="{% url 'customers:dashboard' %}" class="font-medium text-green-600 hover:text-green-500">
+                                    จัดการลูกค้า →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ออเดอร์ขาย -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
+                                    </svg>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">ออเดอร์ขาย</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900">{{ total_orders|default:0 }}</div>
+                                        <div class="ml-2 flex items-baseline text-sm font-semibold text-orange-600">
+                                            {{ pending_orders|default:0 }}
+                                            <span class="text-gray-400 ml-1">รอดำเนินการ</span>
+                                        </div>
+                                    </dd>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 px-4 py-4 sm:px-6">
+                            <div class="text-sm">
+                                <a href="{% url 'orders:dashboard' %}" class="font-medium text-yellow-600 hover:text-yellow-500">
+                                    จัดการออเดอร์ →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ใบสั่งซื้อ -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
+                                    </svg>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">ใบสั่งซื้อ</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900">{{ total_purchase_orders|default:0 }}</div>
+                                        <div class="ml-2 flex items-baseline text-sm font-semibold text-red-600">
+                                            {{ pending_purchase_orders|default:0 }}
+                                            <span class="text-gray-400 ml-1">รออนุมัติ</span>
+                                        </div>
+                                    </dd>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 px-4 py-4 sm:px-6">
+                            <div class="text-sm">
+                                <a href="{% url 'purchase:dashboard' %}" class="font-medium text-purple-600 hover:text-purple-500">
+                                    จัดการการซื้อ →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary Stats -->
+            <div class="mb-8">
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+                    
+                    <!-- หมวดหมู่ -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">หมวดหมู่สินค้า</dt>
+                                    <dd class="text-lg font-semibold text-gray-900">{{ total_categories|default:0 }}</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- แบรนด์ -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">แบรนด์</dt>
+                                    <dd class="text-lg font-semibold text-gray-900">{{ total_brands|default:0 }}</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ซัพพลายเออร์ -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">ซัพพลายเออร์ทั้งหมด</dt>
+                                    <dd class="text-lg font-semibold text-gray-900">{{ total_suppliers|default:0 }}</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- คลังสินค้า -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">สินค้าพร้อมขาย</dt>
+                                    <dd class="text-lg font-semibold text-gray-900">{{ available_items|default:0 }}</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- การขายเดือนนี้ -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 w-0 flex-1">
+                                    <dt class="text-sm font-medium text-gray-500 truncate">ขายเดือนนี้</dt>
+                                    <dd class="text-lg font-semibold text-gray-900">{{ monthly_sales|floatformat:0|default:0 }}</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<!--
+       
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">เมนูหลัก</h3>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    
+ 
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200" title="จัดการข้อมูลสินค้า การตั้งราคา แบรนด์ และหมวดหมู่">
+                        <div class="px-6 py-8">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-4">
+                                    <svg class="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7" />
+                                    </svg>
+                                </div>
+                                <div class="ml-6">
+                                    <h3 class="text-lg font-medium text-gray-900">จัดการสินค้า</h3>
+                                    <p class="text-sm text-gray-500">จัดการข้อมูลสินค้า ราคา แบรนด์ และหมวดหมู่</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 grid grid-cols-2 gap-4">
+                                <a href="{% url 'products:product_list' %}" class="text-sm text-blue-600 hover:text-blue-500">• รายการสินค้า</a>
+                                <a href="{% url 'products:product_create' %}" class="text-sm text-blue-600 hover:text-blue-500">• เพิ่มสินค้าใหม่</a>
+                                <a href="{% url 'products:dashboard' %}" class="text-sm text-blue-600 hover:text-blue-500">• Dashboard สินค้า</a>
+                                <a href="{% url 'products:reports' %}" class="text-sm text-blue-600 hover:text-blue-500">• รายงานสินค้า</a>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 px-6 py-3">
+                            <a href="{% url 'products:dashboard' %}" class="text-blue-600 hover:text-blue-500 font-medium">เข้าสู่ระบบสินค้า →</a>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200">
+                        <div class="px-6 py-8">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-green-500 rounded-md p-4">
+                                    <svg class="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
+                                    </svg>
+                                </div>
+                                <div class="ml-6">
+                                    <h3 class="text-lg font-medium text-gray-900">ระบบขาย</h3>
+                                    <p class="text-sm text-gray-500">จัดการออเดอร์ ใบแจ้งหนี้ และการขาย</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 grid grid-cols-2 gap-4">
+                                <a href="{% url 'orders:create_order' %}" class="text-sm text-green-600 hover:text-green-500">• สร้างออเดอร์ใหม่</a>
+                                <a href="{% url 'orders:order_list' %}" class="text-sm text-green-600 hover:text-green-500">• รายการออเดอร์</a>
+                                <a href="{% url 'orders:dashboard' %}" class="text-sm text-green-600 hover:text-green-500">• Dashboard ขาย</a>
+                                <a href="{% url 'orders:reports' %}" class="text-sm text-green-600 hover:text-green-500">• รายงานการขาย</a>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 px-6 py-3">
+                            <a href="{% url 'orders:dashboard' %}" class="text-green-600 hover:text-green-500 font-medium">เข้าสู่ระบบขาย →</a>
+                        </div>
+                    </div>
+
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200">
+                        <div class="px-6 py-8">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-purple-500 rounded-md p-4">
+                                    <svg class="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
+                                    </svg>
+                                </div>
+                                <div class="ml-6">
+                                    <h3 class="text-lg font-medium text-gray-900">ระบบจัดซื้อ</h3>
+                                    <p class="text-sm text-gray-500">จัดการใบขอซื้อ ใบสั่งซื้อ และซัพพลายเออร์</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 grid grid-cols-2 gap-4">
+                                <a href="{% url 'purchase:requisition_create' %}" class="text-sm text-purple-600 hover:text-purple-500">• สร้างใบขอซื้อ</a>
+                                <a href="{% url 'purchase:order_list' %}" class="text-sm text-purple-600 hover:text-purple-500">• รายการใบสั่งซื้อ</a>
+                                <a href="{% url 'purchase:dashboard' %}" class="text-sm text-purple-600 hover:text-purple-500">• Dashboard จัดซื้อ</a>
+                                <a href="{% url 'purchase:reports' %}" class="text-sm text-purple-600 hover:text-purple-500">• รายงานการซื้อ</a>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 px-6 py-3">
+                            <a href="{% url 'purchase:dashboard' %}" class="text-purple-600 hover:text-purple-500 font-medium">เข้าสู่ระบบจัดซื้อ →</a>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200">
+                        <div class="px-6 py-8">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-indigo-500 rounded-md p-4">
+                                    <svg class="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-6">
+                                    <h3 class="text-lg font-medium text-gray-900">จัดการลูกค้า</h3>
+                                    <p class="text-sm text-gray-500">ข้อมูลลูกค้า การติดต่อ และประวัติการซื้อ</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 grid grid-cols-2 gap-4">
+                                <a href="{% url 'customers:customer_add' %}" class="text-sm text-indigo-600 hover:text-indigo-500">• เพิ่มลูกค้าใหม่</a>
+                                <a href="{% url 'customers:customer_list' %}" class="text-sm text-indigo-600 hover:text-indigo-500">• รายการลูกค้า</a>
+                                <a href="{% url 'customers:dashboard' %}" class="text-sm text-indigo-600 hover:text-indigo-500">• Dashboard ลูกค้า</a>
+                                <a href="{% url 'customers:customer_reports' %}" class="text-sm text-indigo-600 hover:text-indigo-500">• รายงานลูกค้า</a>
+                            </div>
+                        </div>
+                        <div class="bg-indigo-50 px-6 py-3">
+                            <a href="{% url 'customers:dashboard' %}" class="text-indigo-600 hover:text-indigo-500 font-medium">เข้าสู่ระบบลูกค้า →</a>
+                        </div>
+                    </div>
+
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200" title="จัดการข้อมูลซัพพลายเออร์และติดตามความสัมพันธ์ทางธุรกิจ">
+                        <div class="px-6 py-8">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-4">
+                                    <svg class="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                </div>
+                                <div class="ml-6">
+                                    <h3 class="text-lg font-medium text-gray-900">จัดการซัพพลายเออร์</h3>
+                                    <p class="text-sm text-gray-500">จัดการข้อมูลผู้ขาย ติดตามใบสั่งซื้อ และความสัมพันธ์</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 grid grid-cols-2 gap-4">
+                                <a href="{% url 'suppliers:supplier_add' %}" class="text-sm text-yellow-600 hover:text-yellow-500">• เพิ่มซัพพลายเออร์</a>
+                                <a href="{% url 'suppliers:supplier_list' %}" class="text-sm text-yellow-600 hover:text-yellow-500">• รายการซัพพลายเออร์</a>
+                                <a href="{% url 'suppliers:dashboard' %}" class="text-sm text-yellow-600 hover:text-yellow-500">• Dashboard ซัพพลายเออร์</a>
+                                <a href="{% url 'suppliers:supplier_reports' %}" class="text-sm text-yellow-600 hover:text-yellow-500">• รายงานและวิเคราะห์</a>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 px-6 py-3">
+                            <a href="{% url 'suppliers:dashboard' %}" class="text-yellow-600 hover:text-yellow-500 font-medium">เข้าสู่ระบบซัพพลายเออร์ →</a>
+                        </div>
+                    </div>
+
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200" title="จัดการสต็อกสินค้า ตำแหน่งจัดเก็บ และการตรวจนับ">
+                        <div class="px-6 py-8">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-teal-500 rounded-md p-4">
+                                    <svg class="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7" />
+                                    </svg>
+                                </div>
+                                <div class="ml-6">
+                                    <h3 class="text-lg font-medium text-gray-900">จัดการคลังสินค้า</h3>
+                                    <p class="text-sm text-gray-500">จัดการสต็อก ตำแหน่งจัดเก็บ ตรวจนับ และการเคลื่อนไหว</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 grid grid-cols-2 gap-4">
+                                <a href="{% url 'inventory:item_create' %}" class="text-sm text-teal-600 hover:text-teal-500">• เพิ่มสินค้าเข้าคลัง</a>
+                                <a href="{% url 'inventory:item_list' %}" class="text-sm text-teal-600 hover:text-teal-500">• รายการสินค้าในคลัง</a>
+                                <a href="{% url 'inventory:location_list' %}" class="text-sm text-teal-600 hover:text-teal-500">• จัดการตำแหน่งเก็บ</a>
+                                <a href="{% url 'inventory:move_items' %}" class="text-sm text-teal-600 hover:text-teal-500">• ย้ายสินค้า</a>
+                                <a href="{% url 'inventory:stock_count_list' %}" class="text-sm text-teal-600 hover:text-teal-500">• ตรวจนับสต็อก</a>
+                                <a href="{% url 'inventory:report' %}" class="text-sm text-teal-600 hover:text-teal-500">• รายงานและวิเคราะห์</a>
+                            </div>
+                        </div>
+                        <div class="bg-teal-50 px-6 py-3">
+                            <a href="{% url 'inventory:dashboard' %}" class="text-teal-600 hover:text-teal-500 font-medium">เข้าสู่ระบบคลังสินค้า →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        -->
+            <!-- Daily Sales Chart -->
+            {% if daily_stats %}
+            <div class="mb-8">
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">ยอดขาย 7 วันล่าสุด</h3>
+                        <p class="text-sm text-gray-500">แนวโน้มการขายรายวัน</p>
+                    </div>
+                    <div class="p-6">
+                        <canvas id="dailySalesChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Activities and Top Performance -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                
+                <!-- Recent Orders -->
+                {% if recent_orders %}
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">ออเดอร์ล่าสุด</h3>
+                        <p class="text-sm text-gray-500">ออเดอร์ขายล่าสุด 5 รายการ</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for order in recent_orders %}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ order.order_id }}</div>
+                                        <div class="text-xs text-gray-500">{{ order.customer.name|default:"ไม่ระบุ" }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-900">{{ order.created_at|date:"d/m H:i" }}</div>
+                                    <div class="text-xs text-gray-500">{{ order.get_status_display }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-6">
+                            <a href="{% url 'orders:order_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                ดูออเดอร์ทั้งหมด →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Top Products -->
+                {% if top_products %}
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">สินค้าขายดี</h3>
+                        <p class="text-sm text-gray-500">สินค้าที่มีออเดอร์มากที่สุด</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for product in top_products %}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ product.name|truncatechars:30 }}</div>
+                                        <div class="text-xs text-gray-500">{{ product.sku|default:"ไม่ระบุ" }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-medium text-gray-900">{{ product.order_count }} ออเดอร์</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-6">
+                            <a href="{% url 'products:reports' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                ดูรายงานสินค้า →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Top Customers and Suppliers -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                
+                <!-- Top Customers -->
+                {% if top_customers %}
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">ลูกค้าที่สั่งซื้อมากที่สุด</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for customer in top_customers %}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ customer.name|truncatechars:30 }}</div>
+                                        <div class="text-xs text-gray-500">{{ customer.get_customer_type_display|default:"ไม่ระบุ" }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-medium text-gray-900">{{ customer.order_count }} ออเดอร์</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-6">
+                            <a href="{% url 'customers:customer_reports' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                ดูรายงานลูกค้า →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Top Suppliers -->
+                {% if top_suppliers %}
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">ซัพพลายเออร์ที่ทำธุรกิจมากที่สุด</h3>
+                        <p class="text-sm text-gray-500">ซัพพลายเออร์ที่มีใบสั่งซื้อมากที่สุด</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for supplier in top_suppliers %}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ supplier.company_name|truncatechars:30 }}</div>
+                                        <div class="text-xs text-gray-500">{{ supplier.contact_name|default:"ไม่ระบุ" }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-medium text-gray-900">{{ supplier.purchase_count }} ใบสั่งซื้อ</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-6">
+                            <a href="{% url 'suppliers:supplier_reports' %}" class="text-sm font-medium text-purple-600 hover:text-purple-500">
+                                ดูรายงานซัพพลายเออร์ →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Alerts Section -->
+            {% if low_stock_items > 0 or pending_orders > 0 or pending_purchase_orders > 0 %}
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">การแจ้งเตือน</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    
+                    {% if low_stock_items > 0 %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-red-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                            <div>
+                                <div class="text-sm font-medium text-red-800">สินค้าคลังใกล้หมด</div>
+                                <div class="text-sm text-red-600">{{ low_stock_items }} รายการ</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'inventory:dashboard' %}" class="text-sm text-red-600 hover:text-red-500 font-medium">ดูรายละเอียด →</a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if pending_orders > 0 %}
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-yellow-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <div class="text-sm font-medium text-yellow-800">ออเดอร์รอดำเนินการ</div>
+                                <div class="text-sm text-yellow-600">{{ pending_orders }} ออเดอร์</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'orders:order_list' %}?status=PENDING" class="text-sm text-yellow-600 hover:text-yellow-500 font-medium">ดูรายละเอียด →</a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if pending_purchase_orders > 0 %}
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-blue-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div>
+                                <div class="text-sm font-medium text-blue-800">ใบสั่งซื้อรออนุมัติ</div>
+                                <div class="text-sm text-blue-600">{{ pending_purchase_orders }} ใบ</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'purchase:order_list' %}?status=pending_approval" class="text-sm text-blue-600 hover:text-blue-500 font-medium">ดูรายละเอียด →</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if daily_stats %}
+    // Daily Sales Chart
+    const ctx = document.getElementById('dailySalesChart').getContext('2d');
+    const dailyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for stat in daily_stats %}
+                    '{{ stat.date|date:"d/m" }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'จำนวนออเดอร์',
+                data: [
+                    {% for stat in daily_stats %}
+                        {{ stat.orders }},
+                    {% endfor %}
+                ],
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.1,
+                yAxisID: 'y'
+            }, {
+                label: 'ยอดขาย (บาท)',
+                data: [
+                    {% for stat in daily_stats %}
+                        {{ stat.sales }},
+                    {% endfor %}
+                ],
+                borderColor: 'rgb(16, 185, 129)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.1,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'วันที่'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'จำนวนออเดอร์'
+                    },
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'ยอดขาย (บาท)'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                },
+                title: {
+                    display: false
+                }
+            }
+        }
+    });
+    {% endif %}
+    
+    // เพิ่ม tracking สำหรับ dashboard navigation
+    document.querySelectorAll('a[href*="inventory"], a[href*="suppliers"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            console.log('Dashboard navigation:', this.href);
+        });
+    });
+});
+</script>
+{% endblock %}

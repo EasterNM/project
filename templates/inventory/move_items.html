@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ย้ายสินค้าระหว่างตำแหน่ง - Storems{% endblock %}
+
+{% block page_title %}ย้ายสินค้าระหว่างตำแหน่ง{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Form Card -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <form method="post" action="" x-data="{ moveType: 'single', scannedItems: [] }">
+                        {% csrf_token %}
+                        
+                        <!-- Choose Move Type -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ประเภทการย้าย</label>
+                            <div class="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div class="relative flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="move_type_single" name="move_type" type="radio" value="single" x-model="moveType" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" checked>
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="move_type_single" class="font-medium text-gray-700">ย้ายสินค้าเดี่ยว</label>
+                                        <p class="text-gray-500">ย้ายสินค้าชิ้นเดียวไปยังตำแหน่งใหม่</p>
+                                    </div>
+                                </div>
+                                <div class="relative flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="move_type_bulk" name="move_type" type="radio" value="bulk" x-model="moveType" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="move_type_bulk" class="font-medium text-gray-700">ย้ายสินค้าหลายชิ้น</label>
+                                        <p class="text-gray-500">ย้ายสินค้าหลายชิ้นจากตำแหน่งเดียวกันไปยังตำแหน่งใหม่</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Single Move Form -->
+                        <div x-show="moveType === 'single'" class="space-y-6">
+                            <div class="mb-6">
+                                <label for="single_item" class="block text-sm font-medium text-gray-700 mb-1">Serial Number *</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <input type="text" name="serial_number" id="single_item" {% if selected_item %}value="{{ selected_item.serial_number }}" readonly{% endif %} class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-l-md sm:text-sm border-gray-300" placeholder="สแกนหรือพิมพ์ Serial Number">
+                                    <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                                        </svg>
+                                    </span>
+                                </div>
+                                {% if selected_item %}
+                                <div class="mt-2 bg-blue-50 p-4 rounded-md">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3 flex-1 md:flex md:justify-between">
+                                            <p class="text-sm text-blue-700">
+                                                {{ selected_item.product.name }} | ตำแหน่งปัจจุบัน: {{ selected_item.location.location_name }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Bulk Move Form -->
+                        <div x-show="moveType === 'bulk'" class="space-y-6">
+                            <div class="mb-6">
+                                <label for="from_location" class="block text-sm font-medium text-gray-700 mb-1">ตำแหน่งเดิม *</label>
+                                <select id="from_location" name="from_location" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                    <option value="">เลือกตำแหน่งเดิม</option>
+                                    {% for location in locations %}
+                                        <option value="{{ location.id }}">{{ location.location_code }} - {{ location.location_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">สินค้าที่จะย้าย *</label>
+                                <div class="mt-1 space-y-2">
+                                    <div class="relative flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="move_all" name="move_all" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="move_all" class="font-medium text-gray-700">ย้ายทั้งหมด</label>
+                                            <p class="text-gray-500">ย้ายสินค้าทั้งหมดในตำแหน่งนี้</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <div class="flex items-center justify-between">
+                                            <label for="scan_item" class="block text-sm font-medium text-gray-700">สแกนสินค้า</label>
+                                        </div>
+                                        <div class="mt-1 flex rounded-md shadow-sm">
+                                            <input type="text" id="scan_item" class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-l-md sm:text-sm border-gray-300" placeholder="สแกนหรือพิมพ์ Serial Number">
+                                            <button type="button" @click="scannedItems.push($el.previousElementSibling.value); $el.previousElementSibling.value = ''" class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-50 text-sm font-medium rounded-r-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                เพิ่ม
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Scanned items list -->
+                                    <div class="mt-2">
+                                        <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md" x-show="scannedItems.length > 0">
+                                            <template x-for="(item, index) in scannedItems" :key="index">
+                                                <li class="pl-3 pr-4 py-3 flex items-center justify-between text-sm">
+                                                    <div class="w-0 flex-1 flex items-center">
+                                                        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        <span class="ml-2 flex-1 w-0 truncate" x-text="item"></span>
+                                                        <input type="hidden" name="item_serials" :value="item">
+                                                    </div>
+                                                    <div class="ml-4 flex-shrink-0">
+                                                        <button type="button" @click="scannedItems.splice(index, 1)" class="font-medium text-indigo-600 hover:text-indigo-500">
+                                                            ลบ
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Common fields for both move types -->
+                        <div class="mb-6">
+                            <label for="to_location" class="block text-sm font-medium text-gray-700 mb-1">ตำแหน่งใหม่ *</label>
+                            <select id="to_location" name="to_location" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" required>
+                                <option value="">เลือกตำแหน่งใหม่</option>
+                                {% for location in locations %}
+                                    <option value="{{ location.id }}">{{ location.location_code }} - {{ location.location_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">เหตุผลในการย้าย</label>
+                            <textarea id="reason" name="reason" rows="3" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <a href="{% url 'inventory:dashboard' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2">
+                                ยกเลิก
+                            </a>
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                ยืนยันการย้าย
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const serialInput = document.getElementById('single_item');
+        const itemInfoDiv = document.createElement('div');
+        itemInfoDiv.className = 'mt-2 bg-blue-50 p-4 rounded-md hidden';
+        itemInfoDiv.id = 'item-info';
+        
+        // Insert item info div after serial input
+        serialInput.parentNode.parentNode.appendChild(itemInfoDiv);
+        
+        // Add event listener to serial input
+        serialInput.addEventListener('blur', function() {
+            const serialNumber = serialInput.value.trim();
+            if (serialNumber) {
+                // Clear previous info
+                itemInfoDiv.innerHTML = '';
+                itemInfoDiv.classList.add('hidden');
+                
+                // Fetch item details
+                fetch(`/inventory/api/items/${serialNumber}/`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('ไม่พบสินค้าที่มี Serial Number นี้');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Create info content
+                        const content = `
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3 flex-1 md:flex md:justify-between">
+                                    <p class="text-sm text-blue-700">
+                                        ${data.product_name} | ตำแหน่งปัจจุบัน: ${data.location_name}
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Create hidden input for from_location
+                        const locationInput = document.createElement('input');
+                        locationInput.type = 'hidden';
+                        locationInput.name = 'from_location';
+                        locationInput.value = data.location_id;
+                        
+                        // Add the hidden input directly to the form
+                        document.querySelector('form').appendChild(locationInput);
+                        
+                        // Update UI
+                        itemInfoDiv.innerHTML = content;
+                        itemInfoDiv.classList.remove('hidden');
+                    })
+                    .catch(error => {
+                        // Show error message
+                        const errorContent = `
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-red-700">${error.message}</p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        itemInfoDiv.innerHTML = errorContent;
+                        itemInfoDiv.classList.remove('hidden');
+                        serialInput.value = '';
+                    });
+            } else {
+                itemInfoDiv.classList.add('hidden');
+            }
+        });
+    });
+</script>
+{% endblock %}

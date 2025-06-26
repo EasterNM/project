@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Storems - ระบบจัดการคลังสินค้า{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.5/dist/cdn.min.js" defer></script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="min-h-screen flex flex-col">
+        {% block hide_nav %}
+        <!-- Global Navigation Bar -->
+        <nav class="bg-indigo-600">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <span class="text-white font-bold text-xl">Storems</span>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="ml-10 flex items-baseline space-x-4">
+                                <a href="{% url 'general:dashboard' %}" class="{% block nav_dashboard %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">หน้าหลัก</a>
+                                <a href="{% url 'inventory:dashboard' %}" class="{% block nav_inventory %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">คลังสินค้า</a>
+                                <a href="{% url 'purchase:dashboard' %}" class="{% block nav_purchase %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">จัดซื้อ</a>
+                                <a href="{% url 'orders:dashboard' %}" class="{% block nav_orders %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">การสั่งซื้อสินค้า</a>
+                                <a href="{% url 'products:dashboard' %}" class="{% block nav_products %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">สินค้า</a>
+                                <a href="{% url 'suppliers:dashboard' %}" class="{% block nav_suppliers %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">ซัพพลายเออร์</a>
+                                <a href="{% url 'customers:dashboard' %}" class="{% block nav_customers %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">ลูกค้า</a>
+                                {% block additional_nav_items %}{% endblock %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-4 flex items-center md:ml-6">
+                            <div class="ml-3 relative">
+                                <div>
+                                    <button class="max-w-xs bg-indigo-600 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white">
+                                        <span class="sr-only">Open user menu</span>
+                                        <span class="text-white mr-2">{{ request.user.get_full_name }}</span>
+                                        {% if request.user.profile_image %}
+                                            <img class="h-8 w-8 rounded-full" src="{{ request.user.profile_image.url }}" alt="Profile Image">
+                                        {% else %}
+                                            <div class="h-8 w-8 rounded-full bg-indigo-300 flex items-center justify-center">
+                                                <span class="text-indigo-700 font-bold">{{ request.user.get_full_name|slice:":1" }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                            <a href="{% url 'logout' %}" class="ml-3 text-white hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium">ออกจากระบบ</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden">
+                        <button type="button" class="bg-indigo-600 inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-800 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+                            <span class="sr-only">Open main menu</span>
+                            <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Page Header -->
+        <header class="bg-white shadow">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:justify-between sm:items-center">
+                    <h1 class="text-3xl font-bold text-gray-900">{% block page_title %}หน้าหลัก{% endblock %}</h1>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        {% block page_actions %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </header>
+        {% endblock %}
+
+        <!-- Main Content -->
+        <main>
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for message in messages %}
+                            <div class="rounded-md p-4 {% if message.tags == 'success' %}bg-green-50 border border-green-300{% elif message.tags == 'error' %}bg-red-50 border border-red-300{% else %}bg-blue-50 border border-blue-300{% endif %} mb-2">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        {% if message.tags == 'success' %}
+                                            <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                        {% elif message.tags == 'error' %}
+                                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                            </svg>
+                                        {% else %}
+                                            <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                            </svg>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium {% if message.tags == 'success' %}text-green-800{% elif message.tags == 'error' %}text-red-800{% else %}text-blue-800{% endif %}">
+                                            {{ message }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    {% block modal_content %}{% endblock %}
+    
+    {% block extra_js %}{% endblock %}
+    <script>
+        // Global Alpine.js initialization
+        document.addEventListener('alpine:init', () => {
+            // Initialize any global Alpine components or stores here
+        });
+    </script>
+</body>
+</html>

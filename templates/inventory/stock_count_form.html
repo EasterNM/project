@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}สร้างการตรวจนับสต็อก{% endblock %}
+
+{% block page_title %}สร้างการตรวจนับสต็อก{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Stock Count Form -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <form method="post" id="stockCountForm" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                            <!-- Location Selection -->
+                            <div class="sm:col-span-3">
+                                <label for="location" class="block text-sm font-medium text-gray-700">ตำแหน่งที่นับ *</label>
+                                <div class="mt-1">
+                                    <select id="location" name="location" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        <option value="">-- เลือกตำแหน่ง --</option>
+                                        {% for location in locations %}
+                                            <option value="{{ location.id }}">{{ location.location_code }} - {{ location.location_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Count Date -->
+                            <div class="sm:col-span-3">
+                                <label for="count_date" class="block text-sm font-medium text-gray-700">วันที่ตรวจนับ *</label>
+                                <div class="mt-1">
+                                    <input type="datetime-local" name="count_date" id="count_date" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="sm:col-span-6">
+                                <label for="note" class="block text-sm font-medium text-gray-700">หมายเหตุ</label>
+                                <div class="mt-1">
+                                    <textarea id="note" name="note" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-5">
+                            <div class="flex justify-end">
+                                <a href="{% url 'inventory:stock_count_list' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    ยกเลิก
+                                </a>
+                                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    สร้างการตรวจนับ
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

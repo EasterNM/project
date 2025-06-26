@@ -1,0 +1,572 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รายงานและการวิเคราะห์ซัพพลายเออร์ - Storems{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+{% endblock %}
+
+{% block nav_suppliers %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}รายงานและการวิเคราะห์ซัพพลายเออร์{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'suppliers:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+    กลับไปที่หน้าซัพพลายเออร์
+</a>
+<a href="{% url 'suppliers:export_suppliers' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+    ส่งออกข้อมูล CSV
+</a>
+{% endblock %}
+
+{% block content %}
+
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ซัพพลายเออร์ตามประเภท -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ซัพพลายเออร์ตามประเภท
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ซัพพลายเออร์ตามสถานะ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ซัพพลายเออร์ตามสถานะ
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section 2 -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- การติดต่อแยกตามประเภท -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            การติดต่อแยกตามประเภท
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="contactTypeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- การติดต่อรายเดือน -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            การติดต่อรายเดือน
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="monthlyContactChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Purchase Orders Chart -->
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        คำสั่งซื้อรายเดือน
+                    </h3>
+                </div>
+                <div class="p-6 h-80">
+                    <canvas id="monthlyOrdersChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Analytics Cards -->
+            <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                จำนวนการติดต่อเฉลี่ยต่อซัพพลายเออร์
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-indigo-600">
+                                {{ avg_contacts_per_supplier }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                ซัพพลายเออร์ที่ไม่มีการติดต่อใน 3 เดือน
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-red-600">
+                                {{ inactive_suppliers.count }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                จังหวัดที่มีซัพพลายเออร์มากที่สุด
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-green-600">
+                                {% if supplier_by_state.0 %}
+                                    {{ supplier_by_state.0.state }}
+                                {% else %}
+                                    ไม่มีข้อมูล
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Suppliers Tables -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ซัพพลายเออร์ที่มีการติดต่อมากที่สุด -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ซัพพลายเออร์ที่มีการติดต่อมากที่สุด
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ซัพพลายเออร์
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ประเภท
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        จำนวนการติดต่อ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for supplier in top_contacted_suppliers %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-indigo-600">
+                                                <a href="{% url 'suppliers:supplier_detail' supplier.id %}">{{ supplier.company_name }}</a>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if supplier.category == 'manufacturer' %}bg-indigo-100 text-indigo-800
+                                                {% elif supplier.category == 'distributor' %}bg-blue-100 text-blue-800
+                                                {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                                {{ supplier.get_category_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ supplier.contact_count }}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 text-sm text-gray-500 text-center">
+                                            ไม่มีข้อมูล
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ซัพพลายเออร์ที่มีการสั่งซื้อมากที่สุด -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ซัพพลายเออร์ที่มีการสั่งซื้อมากที่สุด
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ซัพพลายเออร์
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ประเภท
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        จำนวนคำสั่งซื้อ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for supplier in top_ordered_suppliers %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-indigo-600">
+                                                <a href="{% url 'suppliers:supplier_detail' supplier.id %}">{{ supplier.company_name }}</a>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if supplier.category == 'manufacturer' %}bg-indigo-100 text-indigo-800
+                                                {% elif supplier.category == 'distributor' %}bg-blue-100 text-blue-800
+                                                {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                                {{ supplier.get_category_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ supplier.order_count }}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 text-sm text-gray-500 text-center">
+                                            ไม่มีข้อมูล
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ซัพพลายเออร์ที่มีมูลค่าการสั่งซื้อมากที่สุด -->
+            {% if top_value_suppliers %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ซัพพลายเออร์ที่มีมูลค่าการสั่งซื้อมากที่สุด
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ซัพพลายเออร์
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ประเภท
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    มูลค่ารวม
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for supplier in top_value_suppliers %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-indigo-600">
+                                            <a href="{% url 'suppliers:supplier_detail' supplier.id %}">{{ supplier.company_name }}</a>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if supplier.category == 'manufacturer' %}bg-indigo-100 text-indigo-800
+                                            {% elif supplier.category == 'distributor' %}bg-blue-100 text-blue-800
+                                            {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                            {{ supplier.get_category_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ supplier.total_value|floatformat:2 }} บาท
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ซัพพลายเออร์ตามภูมิภาค -->
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ซัพพลายเออร์ตามจังหวัด
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    จังหวัด
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    จำนวนซัพพลายเออร์
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in supplier_by_state %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ item.state }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ item.count }}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="px-6 py-4 text-sm text-gray-500 text-center">
+                                        ไม่มีข้อมูล
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // สร้างข้อมูลสำหรับแผนภูมิ
+
+        // ซัพพลายเออร์ตามประเภท
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        const categoryChart = new Chart(categoryCtx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    'ผู้ผลิต',
+                    'ผู้จัดจำหน่าย',
+                    'ผู้ให้บริการ'
+                ],
+                datasets: [{
+                    data: [
+                        {{ category_data.manufacturer|default:0 }},
+                        {{ category_data.distributor|default:0 }},
+                        {{ category_data.service|default:0 }}
+                    ],
+                    backgroundColor: [
+                        'rgba(79, 70, 229, 0.7)', // indigo
+                        'rgba(59, 130, 246, 0.7)', // blue
+                        'rgba(139, 92, 246, 0.7)', // purple
+                    ],
+                    borderColor: [
+                        'rgba(79, 70, 229, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(139, 92, 246, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'การกระจายตามประเภทซัพพลายเออร์'
+                    }
+                }
+            }
+        });
+
+        // ซัพพลายเออร์ตามสถานะ
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    'ใช้งานอยู่',
+                    'ไม่ใช้งาน'
+                ],
+                datasets: [{
+                    data: [
+                        {{ status_data.active|default:0 }},
+                        {{ status_data.inactive|default:0 }}
+                    ],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.7)', // green
+                        'rgba(239, 68, 68, 0.7)', // red
+                    ],
+                    borderColor: [
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(239, 68, 68, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'การกระจายตามสถานะซัพพลายเออร์'
+                    }
+                }
+            }
+        });
+
+        // การติดต่อแยกตามประเภท
+        const contactTypeCtx = document.getElementById('contactTypeChart').getContext('2d');
+        const contactTypeChart = new Chart(contactTypeCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'โทรศัพท์',
+                    'อีเมล',
+                    'ประชุม',
+                    'อื่นๆ'
+                ],
+                datasets: [{
+                    label: 'จำนวนการติดต่อ',
+                    data: [
+                        {{ contact_type_data.phone|default:0 }},
+                        {{ contact_type_data.email|default:0 }},
+                        {{ contact_type_data.meeting|default:0 }},
+                        {{ contact_type_data.other|default:0 }}
+                    ],
+                    backgroundColor: 'rgba(79, 70, 229, 0.7)', // indigo
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'การกระจายตามประเภทการติดต่อ'
+                    }
+                }
+            }
+        });
+
+        // การติดต่อรายเดือน
+        const monthlyContactCtx = document.getElementById('monthlyContactChart').getContext('2d');
+        const monthlyContactChart = new Chart(monthlyContactCtx, {
+            type: 'line',
+            data: {
+                labels: [
+                    {% for item in month_data %}
+                        '{{ item.month }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'จำนวนการติดต่อ',
+                    data: [
+                        {% for item in month_data %}
+                            {{ item.count }},
+                        {% endfor %}
+                    ],
+                    fill: false,
+                    borderColor: 'rgba(79, 70, 229, 1)', // indigo
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'การติดต่อรายเดือน'
+                    }
+                }
+            }
+        });
+
+        // คำสั่งซื้อรายเดือน
+        const monthlyOrdersCtx = document.getElementById('monthlyOrdersChart').getContext('2d');
+        const monthlyOrdersChart = new Chart(monthlyOrdersCtx, {
+            type: 'line',
+            data: {
+                labels: [
+                    {% for item in month_orders %}
+                        '{{ item.month }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'จำนวนคำสั่งซื้อ',
+                    data: [
+                        {% for item in month_orders %}
+                            {{ item.count }},
+                        {% endfor %}
+                    ],
+                    fill: false,
+                    borderColor: 'rgba(59, 130, 246, 1)', // blue
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'คำสั่งซื้อรายเดือน'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

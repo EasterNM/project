@@ -1,0 +1,535 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if order %}แก้ไขใบสั่งซื้อ{% else %}สร้างใบสั่งซื้อใหม่{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border-color: #d1d5db;
+        border-radius: 0.375rem;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}{% if order %}แก้ไขใบสั่งซื้อ {{ order.po_number }}{% else %}สร้างใบสั่งซื้อใหม่{% endif %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Form -->
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">ข้อมูลใบสั่งซื้อ</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">กรอกข้อมูลทั่วไปของใบสั่งซื้อ</p>
+                    </div>
+                    <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                            <div class="sm:col-span-3">
+                                <label for="supplier" class="block text-sm font-medium text-gray-700">ผู้ขาย <span class="text-red-600">*</span></label>
+                                <div class="mt-1">
+                                    <select id="supplier" name="supplier" required class="supplier-select shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        <option value="">-- เลือกผู้ขาย --</option>
+                                        {% for supplier in suppliers %}
+                                            <option value="{{ supplier.id }}" {% if order.supplier.id == supplier.id %}selected{% endif %}>{{ supplier.company_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">กำหนดส่ง <span class="text-red-600">*</span></label>
+                                <div class="mt-1">
+                                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" value="{{ order.expected_delivery_date|date:'Y-m-d'|default:today|date:'Y-m-d' }}" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            </div>
+
+                            {% if requisition %}
+                            <div class="sm:col-span-6">
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-blue-700">
+                                                กำลังสร้างใบสั่งซื้อจากใบขอซื้อเลขที่ <strong>{{ requisition.pr_number }}</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="sm:col-span-3">
+                                <label for="status" class="block text-sm font-medium text-gray-700">สถานะ</label>
+                                <div class="mt-1">
+                                    <select id="status" name="status" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        <option value="draft" {% if order.status == 'draft' or not order %}selected{% endif %}>ร่าง</option>
+                                        <option value="pending_approval" {% if order.status == 'pending_approval' %}selected{% endif %}>ส่งอนุมัติ</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">รายการสินค้าที่สั่งซื้อ</h3>
+                            <p class="mt-1 max-w-2xl text-sm text-gray-500">กรอกรายการสินค้าที่ต้องการสั่งซื้อ</p>
+                        </div>
+                        <button type="button" id="add-item" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg class="-ml-1 mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            เพิ่มรายการ
+                        </button>
+                    </div>
+                    <div class="border-t border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200" id="items-table">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สินค้า <span class="text-red-600">*</span></th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวน <span class="text-red-600">*</span></th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ราคาต่อหน่วย <span class="text-red-600">*</span></th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">มูลค่ารวม</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="item-rows" class="bg-white divide-y divide-gray-200">
+                                {% if details or requisition.details %}
+                                    {% if details %}
+                                        {% for detail in details %}
+                                            <tr class="item-row">
+                                                <input type="hidden" name="detail_id" value="{{ detail.id }}">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <select name="product_id" required class="product-select shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                        <option value="">-- เลือกสินค้า --</option>
+                                                        {% for product in products %}
+                                                            <option value="{{ product.id }}" {% if product.id == detail.product.id %}selected{% endif %}>{{ product.name }} ({{ product.code }})</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <input type="number" name="quantity" value="{{ detail.quantity }}" min="1" required class="quantity-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <input type="number" name="unit_price" value="{{ detail.unit_price }}" min="0.01" step="0.01" required class="price-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="subtotal">{{ detail.subtotal }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button type="button" class="remove-item text-red-600 hover:text-red-900">
+                                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for detail in requisition.details.all %}
+                                            <tr class="item-row">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <select name="product_id" required class="product-select shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                        <option value="">-- เลือกสินค้า --</option>
+                                                        {% for product in products %}
+                                                            <option value="{{ product.id }}" {% if product.id == detail.product.id %}selected{% endif %}>{{ product.name }} ({{ product.code }})</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <input type="number" name="quantity" value="{{ detail.quantity }}" min="1" required class="quantity-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <input type="number" name="unit_price" value="0" min="0.01" step="0.01" required class="price-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="subtotal">0.00</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button type="button" class="remove-item text-red-600 hover:text-red-900">
+                                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% else %}
+                                    <tr class="item-row">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <select name="product_id" required class="product-select shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                <option value="">-- เลือกสินค้า --</option>
+                                                {% for product in products %}
+                                                    <option value="{{ product.id }}">{{ product.name }} ({{ product.code }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="number" name="quantity" value="1" min="1" required class="quantity-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="number" name="unit_price" value="0" min="0.01" step="0.01" required class="price-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="subtotal">0.00</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button type="button" class="remove-item text-red-600 hover:text-red-900">
+                                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                            <tfoot class="bg-gray-50">
+                                <tr>
+                                    <td colspan="3" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">รวมทั้งสิ้น:</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" id="total-amount">0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <a href="{% url 'purchase:order_list' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3">
+                        ยกเลิก
+                    </a>
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        บันทึก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<!-- Template for new item row -->
+<template id="item-row-template">
+    <tr class="item-row">
+        <td class="px-6 py-4 whitespace-nowrap">
+            <select name="product_id" required class="product-select shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <option value="">-- เลือกสินค้า --</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.name }} ({{ product.code }})</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <input type="number" name="quantity" value="1" min="1" required class="quantity-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <input type="number" name="unit_price" value="0" min="0.01" step="0.01" required class="price-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="subtotal">0.00</div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button type="button" class="remove-item text-red-600 hover:text-red-900">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        </td>
+    </tr>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Select2 for supplier and product selects
+        $('.supplier-select').select2({
+            placeholder: "เลือกผู้ขาย",
+            allowClear: true,
+            width: '100%'
+        });
+        
+        function initSelect2() {
+            $('.product-select').select2({
+                placeholder: "เลือกสินค้า",
+                allowClear: true,
+                width: '100%'
+            });
+        }
+        
+        initSelect2();
+        
+        // Function to safely convert string to float with improved validation
+        function safeParseFloat(value) {
+            // Handle various input types
+            if (value === null || value === undefined) return 0;
+            if (typeof value === 'number') {
+                return isFinite(value) ? Math.abs(value) : 0;
+            }
+            if (!value || typeof value !== 'string') return 0;
+            
+            try {
+                // Remove currency symbols, spaces, and commas
+                const cleanValue = value.trim()
+                    .replace(/[฿$,\s]/g, '')  // Remove currency symbols, commas, and spaces
+                    .replace(/[^\d.-]/g, ''); // Keep only numbers, decimal point, and negative sign
+                
+                // Handle empty or invalid string after cleaning
+                if (!cleanValue) return 0;
+                
+                const parsed = parseFloat(cleanValue);
+                // Validate the parsed number
+                if (!isFinite(parsed)) return 0;
+                
+                return Math.abs(parsed); // Always return positive number
+            } catch (e) {
+                console.error('Error in safeParseFloat:', e);
+                return 0;
+            }
+        }
+
+        // Calculate subtotal for an item row with improved error handling
+        function calculateSubtotal(row) {
+            try {
+                // Get input elements
+                const quantityInput = $(row).find('.quantity-input');
+                const priceInput = $(row).find('.price-input');
+                const subtotalElement = $(row).find('.subtotal');
+                
+                if (!quantityInput.length || !priceInput.length || !subtotalElement.length) {
+                    console.error('Required elements not found in row');
+                    return;
+                }
+                
+                // Get and validate values
+                let quantity = safeParseFloat(quantityInput.val());
+                let price = safeParseFloat(priceInput.val());
+                
+                // Ensure minimum values and convert to numbers
+                quantity = Math.max(0, Math.floor(quantity)); // Always use integer for quantity
+                price = Math.max(0, Number(price.toFixed(2))); // Ensure 2 decimal places for price
+                
+                // Update input values with formatted numbers
+                if (quantity > 0) {
+                    quantityInput.val(quantity.toString());
+                } else {
+                    quantityInput.val('');
+                }
+                
+                if (price > 0) {
+                    priceInput.val(price.toFixed(2));
+                } else {
+                    priceInput.val('0.00');
+                }
+                
+                // Calculate subtotal
+                let subtotal = 0;
+                try {
+                    subtotal = quantity * price;
+                    if (!isFinite(subtotal)) throw new Error('Invalid subtotal calculation');
+                } catch (calcError) {
+                    console.error('Error calculating subtotal:', calcError);
+                    subtotal = 0;
+                }
+                
+                // Display subtotal
+                subtotalElement.text(subtotal.toFixed(2));
+                
+                calculateTotal();
+            } catch (error) {
+                console.error('Error in calculateSubtotal:', error);
+                // Set safe default values if calculation fails
+                $(row).find('.subtotal').text('0.00');
+                calculateTotal();
+            }
+        }
+        
+        // Calculate total amount
+        function calculateTotal() {
+            try {
+                let total = 0;
+                $('.subtotal').each(function() {
+                    const value = $(this).text().trim();
+                    const subtotal = safeParseFloat(value);
+                    if (!isNaN(subtotal) && isFinite(subtotal)) {
+                        total += subtotal;
+                    }
+                });
+                $('#total-amount').text((total || 0).toFixed(2));
+            } catch (error) {
+                console.error('Error in calculateTotal:', error);
+                $('#total-amount').text('0.00');
+            }
+        }
+        
+        // Calculate initial subtotals
+        $('.item-row').each(function() {
+            calculateSubtotal(this);
+        });
+        
+        // Add new item row
+        $('#add-item').click(function() {
+            const template = document.getElementById('item-row-template');
+            const clone = document.importNode(template.content, true);
+            document.getElementById('item-rows').appendChild(clone);
+            
+            // Re-initialize Select2 for the new row
+            initSelect2();
+            
+            // Set up event handlers for the new row
+            const newRow = $('#item-rows tr:last');
+            newRow.find('.quantity-input, .price-input').on('input', function() {
+                calculateSubtotal(newRow);
+            });
+
+            // If a supplier is already selected, try to fetch price when product is selected
+            const supplierId = $('#supplier').val();
+            if (supplierId) {
+                newRow.find('.product-select').on('change', function() {
+                    const productId = $(this).val();
+                    if (productId) {
+                        fetchProductPrice(supplierId, productId, $(this).closest('tr').find('.price-input'));
+                    }
+                });
+            }
+        });
+        
+        // Remove item row
+        $(document).on('click', '.remove-item', function() {
+            const tableRows = document.querySelectorAll('.item-row');
+            if (tableRows.length > 1) {
+                $(this).closest('tr').remove();
+                calculateTotal();
+            } else {
+                alert('ต้องมีรายการสินค้าอย่างน้อย 1 รายการ');
+            }
+        });
+        
+        // Recalculate subtotal when quantity or price changes
+        $(document).on('input', '.quantity-input, .price-input', function() {
+            try {
+                const input = $(this);
+                const isPrice = input.hasClass('price-input');
+                let value = input.val().trim();
+                
+                // Allow empty values during typing
+                if (value === '') {
+                    if (isPrice) {
+                        input.val('0.00');
+                    } else {
+                        input.val('0');
+                    }
+                    calculateSubtotal(input.closest('tr'));
+                    return;
+                }
+                
+                // Parse and validate the number
+                const parsed = safeParseFloat(value);
+                if (parsed > 0) {
+                    // Format with 2 decimal places for prices, whole numbers for quantities
+                    input.val(isPrice ? parsed.toFixed(2) : Math.floor(parsed).toString());
+                } else {
+                    input.val(isPrice ? '0.00' : '0');
+                }
+                
+                calculateSubtotal(input.closest('tr'));
+            } catch (error) {
+                console.error('Error in input handler:', error);
+                // Set safe default value
+                const input = $(this);
+                input.val(input.hasClass('price-input') ? '0.00' : '0');
+                calculateSubtotal(input.closest('tr'));
+            }
+        });
+
+        // Function to fetch price for a specific product
+        function fetchProductPrice(supplierId, productId, priceInput) {
+            priceInput.val('').attr('placeholder', 'กำลังโหลด...');
+            
+            $.ajax({
+                url: `/purchase/api/product-prices/${supplierId}/`,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.product_prices[productId]) {
+                        const price = safeParseFloat(response.product_prices[productId].unit_price);
+                        if (price > 0) {
+                            priceInput.val(price.toFixed(2));
+                        } else {
+                            priceInput.val('0.00');
+                        }
+                    } else {
+                        priceInput.val('0.00');
+                    }
+                    priceInput.attr('placeholder', '');
+                    calculateSubtotal(priceInput.closest('tr'));
+                },
+                error: function() {
+                    priceInput.val('0').attr('placeholder', '');
+                    calculateSubtotal(priceInput.closest('tr'));
+                }
+            });
+        }
+        
+        // When a product is selected, try to fetch its price if a supplier is selected
+        $(document).on('change', '.product-select', function() {
+            const supplierId = $('#supplier').val();
+            const productId = $(this).val();
+            
+            if (supplierId && productId) {
+                fetchProductPrice(supplierId, productId, $(this).closest('tr').find('.price-input'));
+            }
+        });
+        
+        // Fetch and auto-fill product prices when supplier changes
+        $('#supplier').on('change', function() {
+            const supplierId = $(this).val();
+            
+            if (supplierId) {
+                $('.item-row').each(function() {
+                    const row = $(this);
+                    const productId = row.find('.product-select').val();
+                    
+                    if (productId) {
+                        fetchProductPrice(supplierId, productId, row.find('.price-input'));
+                    }
+                });
+                
+                // Add event handler for future product selections
+                $('.product-select').off('change').on('change', function() {
+                    const productId = $(this).val();
+                    if (productId) {
+                        fetchProductPrice(supplierId, productId, $(this).closest('tr').find('.price-input'));
+                    }
+                });
+            } else {
+                // Clear prices if no supplier selected
+                $('.price-input').val('0');
+                $('.item-row').each(function() {
+                    calculateSubtotal(this);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

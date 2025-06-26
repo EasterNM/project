@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}แก้ไขสินค้า - Storems{% endblock %}
+
+{% block page_title %}แก้ไขสินค้า{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Form Content -->
+            <div class="bg-white shadow rounded-lg">
+                <form action="{% url 'products:product_update' product.id %}" method="post" id="productForm" class="space-y-6">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    
+                    <!-- Basic Information -->
+                    <div class="bg-white px-4 py-5 sm:rounded-lg sm:p-6">
+                        <div class="md:grid md:grid-cols-3 md:gap-6">
+                            <div class="md:col-span-1">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">ข้อมูลทั่วไป</h3>
+                                <p class="mt-1 text-sm text-gray-500">แก้ไขข้อมูลสินค้า {{ product.name }}</p>
+                            </div>
+                            <div class="mt-5 md:mt-0 md:col-span-2">
+                                <div class="grid grid-cols-6 gap-6">
+                                    <div class="col-span-6">
+                                        <label for="name" class="block text-sm font-medium text-gray-700">ชื่อสินค้า *</label>
+                                        <input type="text" name="name" id="name" value="{{ product.name }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                                    </div>
+
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="sku" class="block text-sm font-medium text-gray-700">SKU</label>
+                                        <input type="text" name="sku" id="sku" value="{{ product.sku }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100" disabled title="SKU ไม่สามารถแก้ไขได้หลังจากสร้างสินค้าแล้ว">
+                                        <p class="mt-1 text-xs text-gray-500">* SKU ไม่สามารถแก้ไขได้หลังจากสร้างสินค้าแล้ว</p>
+                                    </div>
+
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="unit" class="block text-sm font-medium text-gray-700">หน่วยนับ *</label>
+                                        <input type="text" name="unit" id="unit" value="{{ product.unit }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                                    </div>
+
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="category" class="block text-sm font-medium text-gray-700">หมวดหมู่</label>
+                                        <select id="category" name="category" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="">-- เลือกหมวดหมู่ --</option>
+                                            {% for category in categories %}
+                                                <option value="{{ category.id }}" {% if product.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="brand" class="block text-sm font-medium text-gray-700">แบรนด์</label>
+                                        <select id="brand" name="brand" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="">-- เลือกแบรนด์ --</option>
+                                            {% for brand in brands %}
+                                                <option value="{{ brand.id }}" {% if product.brand_id == brand.id %}selected{% endif %}>{{ brand.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-span-6">
+                                        <label for="description" class="block text-sm font-medium text-gray-700">คำอธิบาย</label>
+                                        <textarea id="description" name="description" rows="3" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ product.description }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Information -->
+                    <div class="bg-white px-4 py-5 sm:rounded-lg sm:p-6">
+                        <div class="md:grid md:grid-cols-3 md:gap-6">
+                            <div class="md:col-span-1">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">ข้อมูลราคา</h3>
+                                <p class="mt-1 text-sm text-gray-500">กำหนดราคาทุนและราคาขายของสินค้า</p>
+                            </div>
+                            <div class="mt-5 md:mt-0 md:col-span-2">
+                                <div class="grid grid-cols-6 gap-6">
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="cost_price" class="block text-sm font-medium text-gray-700">ราคาทุน *</label>
+                                        <div class="mt-1 relative rounded-md shadow-sm">
+                                            <input type="number" name="cost_price" id="cost_price" value="{{ product.cost_price }}" min="0" step="0.01" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md" required>
+                                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">บาท</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-span-6 sm:col-span-3"></div>
+
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="price_a" class="block text-sm font-medium text-gray-700">ราคาขาย A *</label>
+                                        <div class="mt-1 relative rounded-md shadow-sm">
+                                            <input type="number" name="price_a" id="price_a" value="{{ product.price_a }}" min="0" step="0.01" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md" required>
+                                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">บาท</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="price_aa" class="block text-sm font-medium text-gray-700">ราคาขาย AA *</label>
+                                        <div class="mt-1 relative rounded-md shadow-sm">
+                                            <input type="number" name="price_aa" id="price_aa" value="{{ product.price_aa }}" min="0" step="0.01" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md" required>
+                                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">บาท</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="price_aaa" class="block text-sm font-medium text-gray-700">ราคาขาย AAA *</label>
+                                        <div class="mt-1 relative rounded-md shadow-sm">
+                                            <input type="number" name="price_aaa" id="price_aaa" value="{{ product.price_aaa }}" min="0" step="0.01" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md" required>
+                                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">บาท</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Information -->
+                    <div class="bg-white px-4 py-5 sm:rounded-lg sm:p-6">
+                        <div class="md:grid md:grid-cols-3 md:gap-6">
+                            <div class="md:col-span-1">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">ข้อมูลสต็อก</h3>
+                                <p class="mt-1 text-sm text-gray-500">กำหนดค่าสำหรับการจัดการสต็อก</p>
+                            </div>
+                            <div class="mt-5 md:mt-0 md:col-span-2">
+                                <div class="grid grid-cols-6 gap-6">
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="reorder_point" class="block text-sm font-medium text-gray-700">จุดสั่งซื้อ (Reorder Point)</label>
+                                        <input type="number" name="reorder_point" id="reorder_point" value="{{ product.reorder_point }}" min="0" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+
+                                    <div class="col-span-6 sm:col-span-3">
+                                        <label for="reorder_quantity" class="block text-sm font-medium text-gray-700">จำนวนสั่งซื้อที่แนะนำ</label>
+                                        <input type="number" name="reorder_quantity" id="reorder_quantity" value="{{ product.reorder_quantity }}" min="0" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                        <a href="{% url 'products:product_detail' product.id %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            ยกเลิก
+                        </a>
+                        <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            บันทึกการแก้ไข
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

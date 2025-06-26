@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ supplier.company_name }} - ข้อมูลซัพพลายเออร์{% endblock %}
+
+{% block page_title %}{{ supplier.company_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    
+    
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">ข้อมูลซัพพลายเออร์</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">รายละเอียดและข้อมูลติดต่อของซัพพลายเออร์</p>
+                    </div>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if supplier.status == 'active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ supplier.get_status_display }}
+                    </span>
+                </div>
+                <div class="border-t border-gray-200">
+                    <dl>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">ชื่อบริษัท</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.company_name }}</dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">รหัสซัพพลายเออร์</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.supplier_code|default:"ไม่มี" }}</dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">ประเภท</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.get_category_display }}</dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">ชื่อผู้ติดต่อ</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.contact_name }}</dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">ตำแหน่งผู้ติดต่อ</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.contact_title|default:"ไม่ระบุ" }}</dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">อีเมล</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <a href="mailto:{{ supplier.email }}" class="text-indigo-600 hover:text-indigo-900">{{ supplier.email }}</a>
+                            </dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">เบอร์โทรศัพท์</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <a href="tel:{{ supplier.phone_number }}" class="text-indigo-600 hover:text-indigo-900">{{ supplier.phone_number }}</a>
+                            </dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">เบอร์แฟกซ์</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.fax_number|default:"ไม่ระบุ" }}</dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">เว็บไซต์</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                {% if supplier.website %}
+                                    <a href="{{ supplier.website }}" target="_blank" class="text-indigo-600 hover:text-indigo-900">{{ supplier.website }}</a>
+                                {% else %}
+                                    ไม่ระบุ
+                                {% endif %}
+                            </dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">ที่อยู่</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                {{ supplier.address }}<br>
+                                {{ supplier.city }}, {{ supplier.state }} {{ supplier.postal_code }}<br>
+                                {{ supplier.country }}
+                            </dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">เลขประจำตัวผู้เสียภาษี</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.tax_id|default:"ไม่ระบุ" }}</dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">ธนาคาร</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.bank_name|default:"ไม่ระบุ" }}</dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">เลขที่บัญชีธนาคาร</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.bank_account_number|default:"ไม่ระบุ" }}</dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">เงื่อนไขการชำระเงิน</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.payment_terms|default:"ไม่ระบุ" }}</dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">วงเงินเครดิต</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.credit_limit|floatformat:2 }} บาท</dd>
+                        </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">สร้างเมื่อ</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.created_at|date:"d M Y H:i" }}</dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">แก้ไขล่าสุด</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.updated_at|date:"d M Y H:i" }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+            
+            <!-- Contact History -->
+            <div class="mt-8">
+                <div class="bg-white shadow sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">ประวัติการติดต่อ</h3>
+                        <button id="add-contact-btn" type="button" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            เพิ่มประวัติการติดต่อ
+                        </button>
+                    </div>
+                    
+                    <!-- Add Contact Form (hidden by default) -->
+                    <div id="add-contact-form" class="hidden bg-gray-50 px-4 py-5 sm:px-6 border-t border-gray-200">
+                        <form action="{% url 'suppliers:add_contact_history' supplier.id %}" method="POST">
+                            {% csrf_token %}
+                            <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-3 sm:gap-x-4">
+                                <div>
+                                    <label for="contact_type" class="block text-sm font-medium text-gray-700">ประเภทการติดต่อ</label>
+                                    <select id="contact_type" name="contact_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                                        <option value="phone">โทรศัพท์</option>
+                                        <option value="email">อีเมล</option>
+                                        <option value="meeting">ประชุม</option>
+                                        <option value="other">อื่นๆ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="contact_date" class="block text-sm font-medium text-gray-700">วันที่ติดต่อ</label>
+                                    <input type="datetime-local" name="contact_date" id="contact_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div class="sm:col-span-3">
+                                    <label for="notes" class="block text-sm font-medium text-gray-700">บันทึก</label>
+                                    <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required></textarea>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end">
+                                <button type="button" id="cancel-add-contact" class="mr-2 bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    ยกเลิก
+                                </button>
+                                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    บันทึก
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 overflow-hidden">
+                        <ul id="contact-history-list" class="divide-y divide-gray-200">
+                            {% for contact in contact_histories %}
+                                <li id="contact-{{ contact.id }}" class="px-4 py-3 sm:px-6">
+                                    <div class="flex items-start justify-between">
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center">
+                                                <div class="mr-2 flex-shrink-0">
+                                                    {% if contact.contact_type == 'phone' %}
+                                                        <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                        </svg>
+                                                    {% elif contact.contact_type == 'email' %}
+                                                        <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                        </svg>
+                                                    {% elif contact.contact_type == 'meeting' %}
+                                                        <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                    {% else %}
+                                                        <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                                        </svg>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-700">{{ contact.get_contact_type_display }}</p>
+                                                    <p class="text-xs text-gray-500">{{ contact.contact_date|date:"d M Y H:i" }} {% if contact.created_by %}โดย {{ contact.created_by }}{% endif %}</p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 text-sm text-gray-600 whitespace-pre-line">{{ contact.notes }}</div>
+                                        </div>
+                                        <div class="ml-4 flex-shrink-0">
+                                            <form method="POST" action="{% url 'suppliers:delete_contact_history' supplier.id contact.id %}" onsubmit="return confirm('ต้องการลบประวัติการติดต่อนี้ใช่หรือไม่?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% empty %}
+                                <li class="px-4 py-5 sm:px-6 text-sm text-gray-500">ยังไม่มีประวัติการติดต่อ</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addContactBtn = document.getElementById('add-contact-btn');
+        const cancelAddContactBtn = document.getElementById('cancel-add-contact');
+        const addContactForm = document.getElementById('add-contact-form');
+        
+        // โชว์/ซ่อนฟอร์มเพิ่มประวัติการติดต่อ
+        addContactBtn.addEventListener('click', function() {
+            addContactForm.classList.toggle('hidden');
+            
+            // ตั้งค่าวันที่เป็นวันเวลาปัจจุบัน
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('contact_date').value = now.toISOString().slice(0, 16);
+        });
+        
+        // ปิดฟอร์ม
+        cancelAddContactBtn.addEventListener('click', function() {
+            addContactForm.classList.add('hidden');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ภาพรวมซัพพลายเออร์ - Storems{% endblock %}
+
+{% block nav_suppliers %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}ภาพรวมซัพพลายเออร์{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'suppliers:supplier_reports' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+    รายงานและการวิเคราะห์
+</a>
+<a href="{% url 'suppliers:supplier_add' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+    เพิ่มซัพพลายเออร์
+</a>
+<a href="{% url 'suppliers:export_suppliers' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+    ส่งออกข้อมูล
+</a>
+{% endblock %}
+
+{% block content %}
+            <!-- Stats -->
+            <div class="mt-4">
+                <dl class="grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-6">
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ซัพพลายเออร์ทั้งหมด</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ total_suppliers }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ซัพพลายเออร์ที่ใช้งานอยู่</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-green-600">{{ active_suppliers }}</dd>
+                    </div>
+                    
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ซัพพลายเออร์ที่ไม่ใช้งาน</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-red-600">{{ inactive_suppliers }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ผู้ผลิต</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-indigo-600">{{ manufacturer_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ผู้จัดจำหน่าย</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-blue-600">{{ distributor_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ผู้ให้บริการ</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-purple-600">{{ service_count }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">เมนูลัด</h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <a href="{% url 'suppliers:supplier_list' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">รายการซัพพลายเออร์</h3>
+                                    <p class="text-xs text-gray-500">ดูรายการซัพพลายเออร์ทั้งหมด</p>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'suppliers:supplier_add' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">เพิ่มซัพพลายเออร์</h3>
+                                    <p class="text-xs text-gray-500">เพิ่มข้อมูลซัพพลายเออร์ใหม่</p>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'suppliers:supplier_reports' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">รายงานและการวิเคราะห์</h3>
+                                    <p class="text-xs text-gray-500">ดูข้อมูลสถิติและการวิเคราะห์</p>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'suppliers:export_suppliers' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">ส่งออกข้อมูล</h3>
+                                    <p class="text-xs text-gray-500">ส่งออกข้อมูลซัพพลายเออร์เป็น CSV</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Sections -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ซัพพลายเออร์ล่าสุด -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ซัพพลายเออร์ล่าสุด
+                        </h3>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        {% for supplier in recent_suppliers %}
+                            <li>
+                                <a href="{% url 'suppliers:supplier_detail' supplier.id %}" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-indigo-600 truncate">
+                                                        {{ supplier.company_name }}
+                                                    </p>
+                                                    <div class="mt-1 flex">
+                                                        <p class="text-sm text-gray-500">
+                                                            {{ supplier.contact_name }} • {{ supplier.phone_number }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if supplier.status == 'active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                                    {{ supplier.get_status_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li class="px-4 py-4 sm:px-6 text-gray-500">
+                                ยังไม่มีซัพพลายเออร์
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                        <a href="{% url 'suppliers:supplier_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                            ดูทั้งหมด
+                            <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- การติดต่อล่าสุด -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            การติดต่อล่าสุด
+                        </h3>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        {% for contact in recent_contacts %}
+                            <li>
+                                <a href="{% url 'suppliers:supplier_detail' contact.supplier.id %}" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium text-indigo-600 truncate">
+                                                    {{ contact.supplier.company_name }}
+                                                </p>
+                                                <div class="mt-1">
+                                                    <p class="text-sm text-gray-500 truncate">
+                                                        {{ contact.get_contact_type_display }} • {{ contact.contact_date|date:"d M Y H:i" }}
+                                                    </p>
+                                                    <p class="text-sm text-gray-700 mt-1 line-clamp-2">
+                                                        {{ contact.notes|truncatechars:100 }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="ml-2">
+                                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li class="px-4 py-4 sm:px-6 text-gray-500">
+                                ยังไม่มีการติดต่อล่าสุด
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                        <a href="{% url 'suppliers:supplier_list' %}?q=&sort=last_contact" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                            ดูทั้งหมด
+                            <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alert Sections -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ซัพพลายเออร์ที่ต้องติดต่อ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6 bg-yellow-50">
+                        <h3 class="text-lg leading-6 font-medium text-yellow-800">
+                            <svg class="inline-block h-5 w-5 mr-1 -mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            ซัพพลายเออร์ที่ต้องติดต่อ
+                        </h3>
+                        <p class="mt-1 text-sm text-yellow-600">ซัพพลายเออร์ที่ไม่มีการติดต่อมากกว่า 60 วัน</p>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        {% for item in suppliers_need_contact %}
+                            <li>
+                                <a href="{% url 'suppliers:supplier_detail' item.supplier.id %}" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium text-indigo-600 truncate">
+                                                    {{ item.supplier.company_name }}
+                                                </p>
+                                                <div class="mt-1">
+                                                    <p class="text-sm text-gray-700">
+                                                        {{ item.supplier.contact_name }} • {{ item.supplier.phone_number }}
+                                                    </p>
+                                                    <p class="text-sm text-red-600 font-medium mt-1">
+                                                        ไม่มีการติดต่อมา {{ item.days_since_contact }} วัน
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="ml-2">
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                    ต้องติดต่อ
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li class="px-4 py-4 sm:px-6 text-gray-500">
+                                ไม่มีซัพพลายเออร์ที่ต้องติดต่อ
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- ซัพพลายเออร์ที่ไม่เคยติดต่อ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6 bg-red-50">
+                        <h3 class="text-lg leading-6 font-medium text-red-800">
+                            <svg class="inline-block h-5 w-5 mr-1 -mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            ซัพพลายเออร์ที่ไม่เคยมีการติดต่อ
+                        </h3>
+                        <p class="mt-1 text-sm text-red-600">ซัพพลายเออร์ที่ยังไม่เคยมีการบันทึกการติดต่อเลย</p>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        {% for supplier in never_contacted_suppliers %}
+                            <li>
+                                <a href="{% url 'suppliers:supplier_detail' supplier.id %}" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium text-indigo-600 truncate">
+                                                    {{ supplier.company_name }}
+                                                </p>
+                                                <div class="mt-1">
+                                                    <p class="text-sm text-gray-700">
+                                                        {{ supplier.contact_name }} • {{ supplier.phone_number }}
+                                                    </p>
+                                                    <p class="text-sm text-red-600 font-medium mt-1">
+                                                        ไม่เคยมีการติดต่อ
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="ml-2">
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                    ควรติดต่อโดยด่วน
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li class="px-4 py-4 sm:px-6 text-gray-500">
+                                ไม่มีซัพพลายเออร์ที่ไม่เคยติดต่อ
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Recent Orders -->
+            {% if recent_orders %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        การสั่งซื้อล่าสุด
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    เลขที่ใบสั่งซื้อ
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ซัพพลายเออร์
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    วันที่สั่งซื้อ
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    สถานะ
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    มูลค่ารวม
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-indigo-600">
+                                            <a href="{% url 'purchase:order_detail' order.po_number %}">{{ order.po_number }}</a>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ order.supplier.company_name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ order.created_at|date:"d M Y" }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if order.status == 'draft' %}bg-gray-100 text-gray-800
+                                            {% elif order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                            {% elif order.status == 'approved' %}bg-green-100 text-green-800
+                                            {% elif order.status == 'completed' %}bg-blue-100 text-blue-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ order.total_amount|floatformat:2 }} บาท
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a href="{% url 'purchase:order_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        ดูใบสั่งซื้อทั้งหมด
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Top Suppliers -->
+            {% if top_suppliers_by_orders %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ซัพพลายเออร์ที่มีการสั่งซื้อมากที่สุด
+                    </h3>
+                </div>
+                <ul class="divide-y divide-gray-200">
+                    {% for supplier in top_suppliers_by_orders %}
+                        <li>
+                            <a href="{% url 'suppliers:supplier_detail' supplier.id %}" class="block hover:bg-gray-50">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-indigo-600 truncate">
+                                                {{ supplier.company_name }}
+                                            </p>
+                                            <div class="mt-1">
+                                                <p class="text-sm text-gray-700">
+                                                    {{ supplier.contact_name }} • {{ supplier.get_category_display }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="ml-2">
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                {{ supplier.order_count }} คำสั่งซื้อ
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a href="{% url 'suppliers:supplier_reports' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        ดูรายงานเพิ่มเติม
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Region Distribution -->
+            {% if suppliers_by_region %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ซัพพลายเออร์ตามภูมิภาค
+                    </h3>
+                </div>
+                <ul class="divide-y divide-gray-200">
+                    {% for region in suppliers_by_region %}
+                        <li class="block px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ region.state }}
+                                    </p>
+                                </div>
+                                <div class="ml-2">
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                        {{ region.count }} ซัพพลายเออร์
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a href="{% url 'suppliers:supplier_reports' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        ดูรายงานเพิ่มเติม
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // เพิ่ม JavaScript สำหรับ dashboard (ถ้าจำเป็น)
+    });
+</script>
+{% endblock %}

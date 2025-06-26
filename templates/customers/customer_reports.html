@@ -1,0 +1,756 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รายงานและการวิเคราะห์ลูกค้า - Storems{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+{% endblock %}
+
+{% block nav_customers %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}รายงานและการวิเคราะห์ลูกค้า{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'customers:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+    กลับไปที่หน้าลูกค้า
+</a>
+<a href="{% url 'customers:export_customers' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+    ส่งออกข้อมูล CSV
+</a>
+{% endblock %}
+
+{% block content %}
+
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ลูกค้าตามประเภท -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ลูกค้าตามประเภท
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="customerTypeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ลูกค้าตามสถานะ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ลูกค้าตามสถานะ
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section 2 -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ลูกค้าตามระดับราคา -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ลูกค้าตามระดับราคา
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="priceTierChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- การติดต่อแยกตามประเภท -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            การติดต่อแยกตามประเภท
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="contactTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section 3 -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- การติดต่อรายเดือน -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            การติดต่อรายเดือน
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="monthlyContactChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ลูกค้าใหม่รายเดือน -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ลูกค้าใหม่รายเดือน
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="monthlyCustomersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Orders Chart -->
+            {% if month_orders %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ออเดอร์จากลูกค้ารายเดือน
+                    </h3>
+                </div>
+                <div class="p-6 h-80">
+                    <canvas id="monthlyOrdersChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Analytics Cards -->
+            <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                จำนวนการติดต่อเฉลี่ยต่อลูกค้า
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-indigo-600">
+                                {{ avg_contacts_per_customer }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                ลูกค้าที่ไม่มีการติดต่อใน 3 เดือน
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-red-600">
+                                {{ inactive_customers.count }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                จังหวัดที่มีลูกค้ามากที่สุด
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-green-600">
+                                {% if customer_by_state.0 %}
+                                    {{ customer_by_state.0.state }}
+                                {% else %}
+                                    ไม่มีข้อมูล
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Customers Tables -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ลูกค้าที่มีการติดต่อมากที่สุด -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ลูกค้าที่มีการติดต่อมากที่สุด
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ลูกค้า
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ประเภท
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        จำนวนการติดต่อ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for customer in top_contacted_customers %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-indigo-600">
+                                                <a href="{% url 'customers:customer_detail' customer.id %}">{{ customer.name }}</a>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if customer.customer_type == 'individual' %}bg-indigo-100 text-indigo-800
+                                                {% elif customer.customer_type == 'company' %}bg-blue-100 text-blue-800
+                                                {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                                {{ customer.get_customer_type_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ customer.contact_count }}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 text-sm text-gray-500 text-center">
+                                            ไม่มีข้อมูล
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ลูกค้าที่มีการสั่งซื้อมากที่สุด -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ลูกค้าที่มีการสั่งซื้อมากที่สุด
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ลูกค้า
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ประเภท
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        จำนวนออเดอร์
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for customer in top_ordered_customers %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-indigo-600">
+                                                <a href="{% url 'customers:customer_detail' customer.id %}">{{ customer.name }}</a>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if customer.customer_type == 'individual' %}bg-indigo-100 text-indigo-800
+                                                {% elif customer.customer_type == 'company' %}bg-blue-100 text-blue-800
+                                                {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                                {{ customer.get_customer_type_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ customer.order_count }}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 text-sm text-gray-500 text-center">
+                                            ไม่มีข้อมูล
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ลูกค้าที่มีมูลค่าการสั่งซื้อมากที่สุด -->
+            {% if top_value_customers %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ลูกค้าที่มีมูลค่าการสั่งซื้อมากที่สุด
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ลูกค้า
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ประเภท
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    มูลค่ารวม
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for customer in top_value_customers %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-indigo-600">
+                                            <a href="{% url 'customers:customer_detail' customer.id %}">{{ customer.name }}</a>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if customer.customer_type == 'individual' %}bg-indigo-100 text-indigo-800
+                                            {% elif customer.customer_type == 'company' %}bg-blue-100 text-blue-800
+                                            {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                            {{ customer.get_customer_type_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ customer.total_value|floatformat:2 }} บาท
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- สรุปข้อมูลเครดิต -->
+            {% if credit_summary %}
+            <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                วงเงินเครดิตรวม
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-indigo-600">
+                                {{ credit_summary.total_credit|floatformat:0|default:0 }} บาท
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                วงเงินเครดิตเฉลี่ย
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-green-600">
+                                {{ credit_summary.avg_credit|floatformat:0|default:0 }} บาท
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                การติดต่อ 30 วันล่าสุด
+                            </dt>
+                            <dd class="mt-1 text-3xl font-semibold text-blue-600">
+                                {{ recent_contacts }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ลูกค้าตามจังหวัด -->
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ลูกค้าตามจังหวัด
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    จังหวัด
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    จำนวนลูกค้า
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in customer_by_state %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ item.state }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ item.count }}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="px-6 py-4 text-sm text-gray-500 text-center">
+                                        ไม่มีข้อมูล
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // สร้างข้อมูลสำหรับแผนภูมิ
+
+        // ลูกค้าตามประเภท
+        const customerTypeCtx = document.getElementById('customerTypeChart').getContext('2d');
+        const customerTypeData = {};
+        {% for item in customer_by_type %}
+            customerTypeData['{{ item.customer_type }}'] = {{ item.count }};
+        {% endfor %}
+
+        const customerTypeChart = new Chart(customerTypeCtx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    'บุคคลทั่วไป',
+                    'บริษัท'
+                ],
+                datasets: [{
+                    data: [
+                        customerTypeData['individual'] || 0,
+                        customerTypeData['company'] || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(79, 70, 229, 0.7)', // indigo
+                        'rgba(59, 130, 246, 0.7)', // blue
+                    ],
+                    borderColor: [
+                        'rgba(79, 70, 229, 1)',
+                        'rgba(59, 130, 246, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'การกระจายตามประเภทลูกค้า'
+                    }
+                }
+            }
+        });
+
+        // ลูกค้าตามสถานะ
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusData = {};
+        {% for item in customer_by_status %}
+            statusData['{{ item.status }}'] = {{ item.count }};
+        {% endfor %}
+
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    'ใช้งานอยู่',
+                    'ไม่ใช้งาน',
+                    'ระงับ'
+                ],
+                datasets: [{
+                    data: [
+                        statusData['active'] || 0,
+                        statusData['inactive'] || 0,
+                        statusData['suspended'] || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.7)', // green
+                        'rgba(239, 68, 68, 0.7)', // red
+                        'rgba(245, 158, 11, 0.7)', // yellow
+                    ],
+                    borderColor: [
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(245, 158, 11, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'การกระจายตามสถานะลูกค้า'
+                    }
+                }
+            }
+        });
+
+        // ลูกค้าตามระดับราคา
+        const priceTierCtx = document.getElementById('priceTierChart').getContext('2d');
+        const priceTierData = {};
+        {% for item in customer_by_price_tier %}
+            priceTierData['{{ item.price_tier }}'] = {{ item.count }};
+        {% endfor %}
+
+        const priceTierChart = new Chart(priceTierCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'ระดับ A',
+                    'ระดับ AA',
+                    'ระดับ AAA'
+                ],
+                datasets: [{
+                    label: 'จำนวนลูกค้า',
+                    data: [
+                        priceTierData['A'] || 0,
+                        priceTierData['AA'] || 0,
+                        priceTierData['AAA'] || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(139, 92, 246, 0.7)', // purple
+                        'rgba(79, 70, 229, 0.7)', // indigo
+                        'rgba(59, 130, 246, 0.7)', // blue
+                    ],
+                    borderColor: [
+                        'rgba(139, 92, 246, 1)',
+                        'rgba(79, 70, 229, 1)',
+                        'rgba(59, 130, 246, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'การกระจายตามระดับราคาลูกค้า'
+                    }
+                }
+            }
+        });
+
+        // การติดต่อแยกตามประเภท
+        const contactTypeCtx = document.getElementById('contactTypeChart').getContext('2d');
+        const contactTypeChart = new Chart(contactTypeCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'โทรศัพท์',
+                    'อีเมล',
+                    'ประชุม',
+                    'เยี่ยมหน้างาน',
+                    'อื่นๆ'
+                ],
+                datasets: [{
+                    label: 'จำนวนการติดต่อ',
+                    data: [
+                        {{ contact_type_data.phone|default:0 }},
+                        {{ contact_type_data.email|default:0 }},
+                        {{ contact_type_data.meeting|default:0 }},
+                        {{ contact_type_data.visit|default:0 }},
+                        {{ contact_type_data.other|default:0 }}
+                    ],
+                    backgroundColor: 'rgba(79, 70, 229, 0.7)', // indigo
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'การกระจายตามประเภทการติดต่อ'
+                    }
+                }
+            }
+        });
+
+        // การติดต่อรายเดือน
+        const monthlyContactCtx = document.getElementById('monthlyContactChart').getContext('2d');
+        const monthlyContactChart = new Chart(monthlyContactCtx, {
+            type: 'line',
+            data: {
+                labels: [
+                    {% for item in month_data %}
+                        '{{ item.month }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'จำนวนการติดต่อ',
+                    data: [
+                        {% for item in month_data %}
+                            {{ item.count }},
+                        {% endfor %}
+                    ],
+                    fill: false,
+                    borderColor: 'rgba(79, 70, 229, 1)', // indigo
+                    backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'การติดต่อรายเดือน'
+                    }
+                }
+            }
+        });
+
+        // ลูกค้าใหม่รายเดือน
+        const monthlyCustomersCtx = document.getElementById('monthlyCustomersChart').getContext('2d');
+        const monthlyCustomersChart = new Chart(monthlyCustomersCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    {% for item in customers_by_month %}
+                        '{{ item.month|date:"M Y" }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'ลูกค้าใหม่',
+                    data: [
+                        {% for item in customers_by_month %}
+                            {{ item.count }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)', // green
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'ลูกค้าใหม่รายเดือน'
+                    }
+                }
+            }
+        });
+
+        // ออเดอร์รายเดือน (ถ้ามี)
+        {% if month_orders %}
+        const monthlyOrdersCtx = document.getElementById('monthlyOrdersChart').getContext('2d');
+        const monthlyOrdersChart = new Chart(monthlyOrdersCtx, {
+            type: 'line',
+            data: {
+                labels: [
+                    {% for item in month_orders %}
+                        '{{ item.month }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'จำนวนออเดอร์',
+                    data: [
+                        {% for item in month_orders %}
+                            {{ item.count }},
+                        {% endfor %}
+                    ],
+                    fill: true,
+                    borderColor: 'rgba(59, 130, 246, 1)', // blue
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'ออเดอร์จากลูกค้ารายเดือน'
+                    }
+                }
+            }
+        });
+        {% endif %}
+    });
+</script>
+{% endblock %}

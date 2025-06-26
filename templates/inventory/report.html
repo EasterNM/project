@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load inventory_extras %}
+
+{% block title %}รายงานและการวิเคราะห์คลังสินค้า - Storems{% endblock %}
+
+{% block nav_inventory %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}รายงานและการวิเคราะห์คลังสินค้า{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'inventory:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h2a2 2 0 012 2v6h3l-3 4-3-4h3V5z" />
+    </svg>
+    กลับสู่แดชบอร์ด
+</a>
+<a href="#" onclick="window.print()" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+    </svg>
+    พิมพ์รายงาน
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            
+            <!-- Alert Section -->
+            {% if alerts %}
+            <div class="mb-8 space-y-4">
+                {% for alert in alerts %}
+                <div class="rounded-md p-4 {% if alert.type == 'danger' %}bg-red-50 border border-red-200{% elif alert.type == 'warning' %}bg-yellow-50 border border-yellow-200{% elif alert.type == 'info' %}bg-blue-50 border border-blue-200{% else %}bg-gray-50 border border-gray-200{% endif %}">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            {% if alert.type == 'danger' %}
+                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                            {% elif alert.type == 'warning' %}
+                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            {% else %}
+                            <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm {% if alert.type == 'danger' %}text-red-800{% elif alert.type == 'warning' %}text-yellow-800{% elif alert.type == 'info' %}text-blue-800{% else %}text-gray-800{% endif %}">
+                                {{ alert.message }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Summary Stats -->
+            <div class="mb-8">
+                <dl class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">รายการสินค้าทั้งหมด</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ total_items|floatformat:"0" }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">มูลค่ารวม</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-green-600">฿{{ total_value|floatformat:"2" }}</dd>
+                    </div>
+                    
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">การตรวจนับเดือนนี้</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-blue-600">{{ stock_count_stats.this_month }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">การตรวจนับเสร็จสิ้น</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-purple-600">{{ stock_count_stats.completed }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Status Distribution -->
+            <div class="mb-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">การกระจายสถานะสินค้า</h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <dl class="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
+                        {% for status_code, status_info in status_stats.items %}
+                        <div class="text-center">
+                            <dt class="text-sm font-medium text-gray-500">{{ status_info.display }}</dt>
+                            <dd class="mt-1 text-2xl font-semibold text-gray-900">{{ status_info.count }}</dd>
+                            <dd class="text-xs text-gray-500">{{ status_info.percentage }}%</dd>
+                        </div>
+                        {% endfor %}
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Analysis Sections -->
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
+                <!-- สินค้าต้องสั่งซื้อเพิ่ม -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6 bg-red-50">
+                        <h3 class="text-lg leading-6 font-medium text-red-800">
+                            สินค้าที่ต้องสั่งซื้อเพิ่ม ({{ low_stock_analysis|length }} รายการ)
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สินค้า</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">คงเหลือ</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ควรมี</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ขาด</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for product in low_stock_analysis %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.available_count }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.reorder_point }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">{{ product.shortage }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">ไม่มีสินค้าที่ต้องสั่งซื้อเพิ่ม</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- สินค้าใกล้หมดอายุ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6 bg-amber-50">
+                        <h3 class="text-lg leading-6 font-medium text-amber-800">
+                            การวิเคราะห์วันหมดอายุ
+                        </h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <dl class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                            <div class="text-center">
+                                <dt class="text-sm font-medium text-red-500">หมดอายุใน 7 วัน</dt>
+                                <dd class="mt-1 text-3xl font-semibold text-red-600">{{ expiry_analysis.week }}</dd>
+                            </div>
+                            <div class="text-center">
+                                <dt class="text-sm font-medium text-yellow-500">หมดอายุใน 30 วัน</dt>
+                                <dd class="mt-1 text-3xl font-semibold text-yellow-600">{{ expiry_analysis.month }}</dd>
+                            </div>
+                            <div class="text-center">
+                                <dt class="text-sm font-medium text-orange-500">หมดอายุใน 90 วัน</dt>
+                                <dd class="mt-1 text-3xl font-semibold text-orange-600">{{ expiry_analysis.quarter }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Analysis -->
+            <div class="mb-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        การวิเคราะห์ตำแหน่งจัดเก็บ
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ตำแหน่ง</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายการทั้งหมด</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">พร้อมใช้</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">มูลค่า</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for location in location_analysis %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ location.location_name }}</div>
+                                        <div class="text-sm text-gray-500">{{ location.location_code }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ location.total_items }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">{{ location.available_items }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">฿{{ location.total_value|floatformat:"2" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-sm text-gray-600">
+                                                {{ location.available_items }}/{{ location.total_items }} ชิ้น
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">ไม่มีข้อมูลตำแหน่งจัดเก็บ</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Value Products -->
+            <div class="mb-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        สินค้าที่มีมูลค่าสูงสุดในคลัง (Top 10)
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สินค้า</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนคงเหลือ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ราคาขาย</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">มูลค่ารวม</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for product in top_value_products %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.available_count }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">฿{{ product.price_a|floatformat:"2" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">฿{{ product.total_value|floatformat:"2" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">ไม่มีข้อมูลสินค้า</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Damaged Items Trend -->
+            {% if damaged_trend %}
+            <div class="mb-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        แนวโน้มสินค้าเสียหาย (6 เดือนล่าสุด)
+                    </h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="space-y-3">
+                        {% for month_data in damaged_trend %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500">{{ month_data.month }}</span>
+                            <div class="flex items-center">
+                                <div class="w-32 bg-gray-200 rounded-full h-2 mr-3">
+                                    <div class="bg-red-600 h-2 rounded-full" style="width: {{ month_data.count|div:10|mul:100 }}%"></div>
+                                </div>
+                                <span class="text-sm text-red-600 font-semibold">{{ month_data.count }} รายการ</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Stock Counts -->
+            {% if recent_stock_counts %}
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        การตรวจนับล่าสุด
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ตำแหน่ง</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้ตรวจนับ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for count in recent_stock_counts %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ count.count_date|date:"d M Y" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ count.location.location_name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ count.counted_by.get_full_name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if count.status == 'completed' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            เสร็จสิ้น
+                                        </span>
+                                        {% elif count.status == 'in_progress' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            กำลังดำเนินการ
+                                        </span>
+                                        {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            ยกเลิก
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Chart functionality can be added here
+    console.log('Inventory Reports loaded');
+</script>
+{% endblock %}

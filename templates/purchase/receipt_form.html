@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รับสินค้าตามใบสั่งซื้อ {{ order.po_number }}{% endblock %}
+
+{% block page_title %}รับสินค้าตามใบสั่งซื้อ {{ order.po_number }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Order Information -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">ข้อมูลใบสั่งซื้อ</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">รายละเอียดใบสั่งซื้อที่จะรับสินค้า</p>
+            </div>
+            <div class="border-t border-gray-200">
+                <dl>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">เลขที่ใบสั่งซื้อ</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ order.po_number }}</dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">ผู้ขาย</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ order.supplier.name }}</dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">วันที่สั่งซื้อ</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ order.order_date|date:"d/m/Y" }}</dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">สถานะ</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {% if order.status == 'approved' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">อนุมัติแล้ว (รอรับของ)</span>
+                            {% elif order.status == 'partially_received' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">รับของบางส่วนแล้ว</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Receipt Form -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">บันทึกการรับสินค้า</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">กรอกข้อมูลการรับสินค้าตามรายการ</p>
+                
+                <!-- คำแนะนำการใช้งาน -->
+                <div class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <h4 class="text-sm font-medium text-blue-800">คำแนะนำในการรับสินค้า:</h4>
+                    <ul class="mt-1 ml-4 text-xs text-blue-700 list-disc">
+                        <li>กรอกจำนวนที่รับในแต่ละรายการ (ต้องไม่เกินจำนวนคงเหลือ)</li>
+                        <li>เลือกสภาพสินค้า: สภาพดี, เสียหาย, หรือไม่ตรงตามสั่ง</li>
+                        <li>กรอก Lot Number และวันหมดอายุ (ถ้ามี) สำหรับการติดตามสินค้า</li>
+                        <li>เลือกสถานที่จัดเก็บที่จะเก็บสินค้าที่รับเข้า</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <form method="post" action="{% url 'purchase:receipt_create' po_number=order.po_number %}">
+                    {% csrf_token %}
+                    
+                    <!-- Receipt Information -->
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 mb-6">
+                        <div class="sm:col-span-3">
+                            <label for="receipt_date" class="block text-sm font-medium text-gray-700">วันที่รับสินค้า</label>
+                            <div class="mt-1">
+                                <input type="datetime-local" name="receipt_date" id="receipt_date" required
+                                    value="{{ now|date:'Y-m-d' }}T{{ now|time:'H:i' }}"
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                        </div>
+                        
+                        <div class="sm:col-span-3">
+                            <label for="location" class="block text-sm font-medium text-gray-700">สถานที่จัดเก็บ</label>
+                            <div class="mt-1">
+                                <select id="location" name="location" required 
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                    <option value="">เลือกสถานที่จัดเก็บ</option>
+                                    {% for location in locations %}
+                                        <option value="{{ location.id }}">{{ location.location_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="sm:col-span-6">
+                            <label for="notes" class="block text-sm font-medium text-gray-700">หมายเหตุ</label>
+                            <div class="mt-1">
+                                <textarea id="notes" name="notes" rows="3"
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Receipt Details -->
+                    <div class="mt-6">
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">รายการสินค้าที่รับ</h4>
+                        
+                        <div class="flex flex-col">
+                            <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                                <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                                    <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สินค้า</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนที่สั่ง</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนที่รับแล้ว</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนที่รับครั้งนี้</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สภาพ</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัส Lot</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันหมดอายุ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                {% for item in details %}
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="flex items-center">
+                                                            <div class="ml-4">
+                                                                <div class="text-sm font-medium text-gray-900">{{ item.detail.product.name }}</div>
+                                                                <div class="text-sm text-gray-500">{{ item.detail.product.code }}</div>
+                                                                <input type="hidden" name="detail_id" value="{{ item.detail.id }}">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {{ item.detail.quantity }}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {{ item.received_quantity }}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <input type="number" name="quantity" min="0" max="{{ item.remaining_quantity }}" value="0"
+                                                            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <select name="condition" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                            {% for condition_code, condition_label in conditions %}
+                                                                <option value="{{ condition_code }}">{{ condition_label }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <input type="text" name="lot_number" 
+                                                            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <input type="date" name="expiry_date" 
+                                                            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                    </td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="7" class="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div class="text-sm text-gray-700">ไม่มีรายการสินค้าที่รอรับ หรือได้รับครบจำนวนแล้ว</div>
+                                                        <div class="mt-2">
+                                                            <a href="{% url 'purchase:order_detail' po_number=order.po_number %}" class="text-indigo-600 hover:text-indigo-900">
+                                                                &larr; กลับไปที่รายละเอียดใบสั่งซื้อ
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="pt-5 mt-6">
+                        <div class="flex justify-end">
+                            <a href="{% url 'purchase:order_detail' po_number=order.po_number %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3">
+                                ยกเลิก
+                            </a>
+                            <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                บันทึกการรับสินค้า
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any JavaScript validation or enhancement here
+        const quantityInputs = document.querySelectorAll('input[name="quantity"]');
+        
+        quantityInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const max = parseInt(this.getAttribute('max'));
+                const value = parseInt(this.value);
+                
+                if (value > max) {
+                    this.value = max;
+                    alert('จำนวนที่รับไม่สามารถมากกว่าจำนวนที่เหลือได้');
+                }
+                
+                if (value < 0) {
+                    this.value = 0;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

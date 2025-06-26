@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ภาพรวมระบบการสั่งซื้อ - Storems{% endblock %}
+
+{% block nav_orders %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}ภาพรวมระบบการสั่งซื้อ{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'orders:reports' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+    รายงานและการวิเคราะห์
+</a>
+<a href="{% url 'orders:create_order' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+    สร้างออเดอร์ใหม่
+</a>
+<a href="{% url 'orders:export_orders' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+    ส่งออกข้อมูล
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- KPI Cards -->
+            <div class="mt-4">
+                <dl class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">รอดำเนินการ</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-yellow-600">{{ pending_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">กำลังดำเนินการ</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-blue-600">{{ processing_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">เสร็จสิ้น</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-green-600">{{ completed_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ยกเลิก</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-red-600">{{ cancelled_count }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">เมนูลัด</h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <a href="{% url 'orders:create_order' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">สร้างออเดอร์ใหม่</h3>
+                                    <p class="text-xs text-gray-500">เพิ่มออเดอร์การสั่งซื้อใหม่</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'orders:order_list' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-blue-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">รายการออเดอร์</h3>
+                                    <p class="text-xs text-gray-500">ดูรายการออเดอร์ทั้งหมด</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'orders:reports' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-purple-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">รายงานและการวิเคราะห์</h3>
+                                    <p class="text-xs text-gray-500">ดูข้อมูลสถิติและการวิเคราะห์</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'orders:export_orders' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-green-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">ส่งออกข้อมูล</h3>
+                                    <p class="text-xs text-gray-500">ส่งออกข้อมูลออเดอร์และใบแจ้งหนี้</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Sections -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ออเดอร์ที่รอดำเนินการ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">ออเดอร์ที่รอดำเนินการ</h3>
+                        <a href="{% url 'orders:order_list' %}?status=PENDING" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">ดูทั้งหมด</a>
+                    </div>
+                    <div class="border-t border-gray-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            {% if pending_orders %}
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    รหัสออเดอร์
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    ลูกค้า
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    วันที่สร้าง
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    สถานะ
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            {% for order in pending_orders %}
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <a href="{% url 'orders:order_detail' order_id=order.order_id %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                                                        {{ order.order_id }}
+                                                    </a>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">{{ order.customer.name }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">{{ order.created_at|date:"d M Y H:i"|default:"ไม่ระบุ" }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        รอดำเนินการ
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-gray-500 text-center py-8">ไม่มีออเดอร์ที่รอดำเนินการ</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ออเดอร์ที่กำลังดำเนินการ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">ออเดอร์ที่กำลังดำเนินการ</h3>
+                        <a href="{% url 'orders:order_list' %}?status=PROCESSING" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">ดูทั้งหมด</a>
+                    </div>
+                    <div class="border-t border-gray-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            {% if processing_orders %}
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    รหัสออเดอร์
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    ลูกค้า
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    วันที่สร้าง
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    สถานะ
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            {% for order in processing_orders %}
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <a href="{% url 'orders:order_detail' order_id=order.order_id %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                                                        {{ order.order_id }}
+                                                    </a>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">{{ order.customer.name }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">{{ order.created_at|date:"d M Y H:i"|default:"ไม่ระบุ" }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                        กำลังดำเนินการ
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-gray-500 text-center py-8">ไม่มีออเดอร์ที่กำลังดำเนินการ</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Analytics -->
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        สถิติของเดือนนี้
+                    </h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <dl class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">จำนวนออเดอร์</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ monthly_orders }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">มูลค่าการขาย</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ monthly_sales|floatformat:2 }} บาท</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            {% if recent_orders %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ออเดอร์ล่าสุด
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    เลขที่ออเดอร์
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ลูกค้า
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    วันที่สร้าง
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    สถานะ
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <a href="{% url 'orders:order_detail' order_id=order.order_id %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                                        {{ order.order_id }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ order.customer.name }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ order.created_at|date:"d M Y H:i"|default:"ไม่ระบุ" }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                        {% elif order.status == 'PROCESSING' %}bg-blue-100 text-blue-800
+                                        {% elif order.status == 'COMPLETED' %}bg-green-100 text-green-800
+                                        {% elif order.status == 'CANCELLED' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ order.get_status_display|default:"ไม่ระบุ" }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a href="{% url 'orders:order_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        ดูรายการออเดอร์ทั้งหมด
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}
+ 

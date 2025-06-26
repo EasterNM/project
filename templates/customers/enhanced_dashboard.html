@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ภาพรวมลูกค้า - Storems{% endblock %}
+
+{% block nav_customers %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}ภาพรวมลูกค้า{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'customers:customer_reports' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+    รายงานและการวิเคราะห์
+</a>
+
+<a href="{% url 'customers:customer_add' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+    เพิ่มลูกค้า
+</a>
+
+<a href="{% url 'customers:export_customers' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+    ส่งออกข้อมูล
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- สรุปข้อมูลลูกค้า -->
+            <div class="px-4 py-6 sm:px-0">
+                <dl class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-6">
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ลูกค้าทั้งหมด</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-indigo-600">{{ total_customers }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ใช้งานอยู่</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-green-600">{{ active_customers }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">หยุดใช้งาน</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-red-600">{{ inactive_customers }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">บุคคลธรรมดา</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-indigo-600">{{ individual_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">นิติบุคคล</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-blue-600">{{ company_count }}</dd>
+                    </div>
+
+                    <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">ระงับใช้งาน</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-orange-600">{{ suspended_customers }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">เมนูลัด</h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <a href="{% url 'customers:customer_list' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">รายการลูกค้า</h3>
+                                    <p class="text-xs text-gray-500">ดูรายการลูกค้าทั้งหมด</p>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'customers:customer_add' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">เพิ่มลูกค้า</h3>
+                                    <p class="text-xs text-gray-500">เพิ่มข้อมูลลูกค้าใหม่</p>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'customers:customer_reports' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">รายงานและการวิเคราะห์</h3>
+                                    <p class="text-xs text-gray-500">ดูข้อมูลสถิติและการวิเคราะห์</p>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'customers:export_customers' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 text-indigo-500">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">ส่งออกข้อมูล</h3>
+                                    <p class="text-xs text-gray-500">ดาวน์โหลดข้อมูลลูกค้า</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Sections -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ลูกค้าล่าสุด -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ลูกค้าล่าสุด
+                        </h3>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        {% for customer in recent_customers %}
+                            <li>
+                                <a href="{% url 'customers:customer_detail' customer_id=customer.id %}" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-indigo-600 truncate">
+                                                        {{ customer.name }}
+                                                    </p>
+                                                    <div class="mt-1 flex">
+                                                        <p class="text-sm text-gray-500">
+                                                            {{ customer.contact_name }} • {{ customer.phone_number }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if customer.status == 'active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                                    {{ customer.get_status_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li class="px-4 py-4 sm:px-6 text-gray-500">
+                                ยังไม่มีลูกค้า
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                        <a href="{% url 'customers:customer_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                            ดูทั้งหมด
+                            <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- การติดต่อล่าสุด -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            การติดต่อล่าสุด
+                        </h3>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        {% for contact in recent_contacts %}
+                            <li>
+                                <a href="{% url 'customers:customer_detail' customer_id=contact.customer.id %}" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium text-indigo-600 truncate">
+                                                    {{ contact.customer.name }}
+                                                </p>
+                                                <div class="mt-1">
+                                                    <p class="text-sm text-gray-500 truncate">
+                                                        {{ contact.get_contact_type_display }} • {{ contact.contact_date|date:"d M Y H:i" }}
+                                                    </p>
+                                                    <p class="text-sm text-gray-700 mt-1 line-clamp-2">
+                                                        {{ contact.subject|truncatechars:100 }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="ml-2">
+                                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li class="px-4 py-4 sm:px-6 text-gray-500">
+                                ยังไม่มีการติดต่อล่าสุด
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                        <a href="{% url 'customers:customer_list' %}?q=&sort=last_contact" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                            ดูทั้งหมด
+                            <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alert Sections -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- ลูกค้าที่ต้องติดต่อ -->
+                {% if customers_need_contact %}
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6 bg-yellow-50">
+                        <h3 class="text-lg leading-6 font-medium text-yellow-800">
+                            <svg class="inline-block h-5 w-5 mr-1 -mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            ลูกค้าที่ต้องติดต่อ
+                        </h3>
+                        <p class="mt-1 text-sm text-yellow-600">ลูกค้าที่ไม่มีการติดต่อมากกว่า 60 วัน</p>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        {% for item in customers_need_contact %}
+                            <li>
+                                <a href="{% url 'customers:customer_detail' customer_id=item.customer.id %}" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium text-indigo-600 truncate">
+                                                    {{ item.customer.name }}
+                                                </p>
+                                                <div class="mt-1">
+                                                    <p class="text-sm text-gray-700">
+                                                        {{ item.customer.contact_name }} • {{ item.customer.phone_number }}
+                                                    </p>
+                                                    <p class="text-sm text-yellow-600 font-medium mt-1">
+                                                        ไม่ติดต่อมา {{ item.days_since_contact }} วันแล้ว
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- ลูกค้าที่ไม่เคยมีการติดต่อ -->
+                {% if never_contacted_customers %}
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6 bg-red-50">
+                        <h3 class="text-lg leading-6 font-medium text-red-800">
+                            <svg class="inline-block h-5 w-5 mr-1 -mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            ลูกค้าที่ไม่เคยมีการติดต่อ
+                        </h3>
+                        <p class="mt-1 text-sm text-red-600">ลูกค้าที่ยังไม่เคยมีการบันทึกการติดต่อเลย</p>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        {% for customer in never_contacted_customers %}
+                            <li>
+                                <a href="{% url 'customers:customer_detail' customer_id=customer.id %}" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium text-indigo-600 truncate">
+                                                    {{ customer.name }}
+                                                </p>
+                                                <div class="mt-1">
+                                                    <p class="text-sm text-gray-700">
+                                                        {{ customer.contact_name }} • {{ customer.phone_number }}
+                                                    </p>
+                                                    <p class="text-sm text-red-600 font-medium mt-1">
+                                                        ยังไม่เคยมีการติดต่อ
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Recent Orders Section -->
+            {% if recent_orders %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ออเดอร์ล่าสุด
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    เลขที่ออเดอร์
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ลูกค้า
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    วันที่สั่ง
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    สถานะ
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    มูลค่ารวม
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-indigo-600">
+                                            {% if order.order_id %}
+                                                <a href="{% url 'orders:order_detail' order_id=order.order_id %}">{{ order.order_id }}</a>
+                                            {% else %}
+                                                ไม่มีเลขที่
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ order.customer.name|default:"ไม่ระบุ" }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ order.created_at|date:"d M Y"|default:"ไม่ระบุ" }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                            {% elif order.status == 'PROCESSING' %}bg-blue-100 text-blue-800
+                                            {% elif order.status == 'COMPLETED' %}bg-green-100 text-green-800
+                                            {% elif order.status == 'CANCELLED' %}bg-red-100 text-red-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ order.get_status_display|default:"ไม่ระบุ" }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {% load inventory_extras %}
+                                        {{ order.details.all|calculate_order_total|floatformat:2 }} บาท
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a href="{% url 'orders:order_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        ดูออเดอร์ทั้งหมด
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Top Customers -->
+            {% if top_customers_by_orders %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ลูกค้าที่มีออเดอร์มากที่สุด
+                    </h3>
+                </div>
+                <ul class="divide-y divide-gray-200">
+                    {% for customer in top_customers_by_orders %}
+                        <li>
+                            <a href="{% url 'customers:customer_detail' customer_id=customer.id %}" class="block hover:bg-gray-50">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-indigo-600 truncate">
+                                                {{ customer.name }}
+                                            </p>
+                                            <div class="mt-1">
+                                                <p class="text-sm text-gray-700">
+                                                    {{ customer.contact_name }} • {{ customer.get_customer_type_display }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="ml-2">
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                {{ customer.order_count }} ออเดอร์
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a href="{% url 'customers:customer_reports' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        ดูรายงานเพิ่มเติม
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Region Distribution -->
+            {% if customers_by_region %}
+            <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        ลูกค้าตามภูมิภาค
+                    </h3>
+                </div>
+                <ul class="divide-y divide-gray-200">
+                    {% for region in customers_by_region %}
+                        <li class="block px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ region.state }}
+                                    </p>
+                                </div>
+                                <div class="ml-2">
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                        {{ region.count }} ลูกค้า
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a href="{% url 'customers:customer_reports' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        ดูรายงานเพิ่มเติม
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // เพิ่ม JavaScript สำหรับ dashboard (ถ้าจำเป็น)
+    });
+</script>
+{% endblock %}

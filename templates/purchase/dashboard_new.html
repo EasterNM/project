@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}จัดซื้อ - Dashboard{% endblock %}
+
+{% block nav_purchase %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}แดชบอร์ดระบบจัดซื้อ{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'purchase:requisition_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+    สร้างใบขอซื้อ
+</a>
+<a href="{% url 'purchase:order_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+    สร้างใบสั่งซื้อ
+</a>
+<a href="{% url 'purchase:reports' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+    รายงานและการวิเคราะห์
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Stats Cards -->
+    <div class="mb-8">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- PR Stats Card -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-blue-500 rounded-md p-3">
+                                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">ใบขอซื้อ</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ pr_stats.total }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3">
+                    <div class="text-sm">
+                        <a href="{% url 'purchase:requisition_list' %}" class="font-medium text-cyan-700 hover:text-cyan-900">ดูทั้งหมด</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PO Stats Card -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-green-500 rounded-md p-3">
+                                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">ใบสั่งซื้อ</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ po_stats.total }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3">
+                    <div class="text-sm">
+                        <a href="{% url 'purchase:order_list' %}" class="font-medium text-cyan-700 hover:text-cyan-900">ดูทั้งหมด</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Approvals Card -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-yellow-500 rounded-md p-3">
+                                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">รออนุมัติ</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ pr_stats.pending|add:po_stats.pending }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3">
+                    <div class="text-sm">
+                        <span class="font-medium text-gray-600">PR: {{ pr_stats.pending }} | PO: {{ po_stats.pending }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goods Receipt Card -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-purple-500 rounded-md p-3">
+                                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">รอรับสินค้า</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ po_stats.approved }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3">
+                    <div class="text-sm">
+                        <a href="{% url 'purchase:receipt_list' %}" class="font-medium text-cyan-700 hover:text-cyan-900">ดูการรับสินค้า</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mb-8">
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">การดำเนินการด่วน</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">ฟังก์ชันหลักสำหรับการจัดซื้อ</p>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <a href="{% url 'purchase:requisition_create' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 text-indigo-500">
+                                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">สร้างใบขอซื้อ</h3>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{% url 'purchase:order_create' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 text-green-500">
+                                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">สร้างใบสั่งซื้อ</h3>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{% url 'purchase:requisition_list' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 text-blue-500">
+                                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">รายการใบขอซื้อ</h3>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{% url 'purchase:order_list' %}" class="group block rounded-lg bg-gray-50 px-4 py-3 hover:bg-gray-100">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 text-purple-500">
+                                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3v8m0 0V9a2 2 0 012-2h2M7 3v8a2 2 0 002 2h2m0 0V9a2 2 0 012-2h2" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-900">รายการใบสั่งซื้อ</h3>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity and Alerts -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Pending Requisitions -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">ใบขอซื้อที่รออนุมัติ</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">รายการใบขอซื้อที่ต้องดำเนินการ</p>
+                </div>
+                <a href="{% url 'purchase:requisition_list' %}?status=pending" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    ดูทั้งหมด
+                    <span class="sr-only">ใบขอซื้อที่รออนุมัติ</span>
+                </a>
+            </div>
+            <div class="border-t border-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เลขที่ใบขอซื้อ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้ขอซื้อ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ขอซื้อ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for pr in pending_requisitions %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ pr.pr_number }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pr.requested_by.get_full_name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pr.request_date|date:"d/m/Y" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{% url 'purchase:requisition_detail' pr_number=pr.pr_number %}" class="text-indigo-600 hover:text-indigo-900 mr-3">รายละเอียด</a>
+                                    <a href="{% url 'purchase:requisition_approve' pr_number=pr.pr_number %}" class="text-green-600 hover:text-green-900">อนุมัติ</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">ไม่มีใบขอซื้อที่รออนุมัติ</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Orders -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">ใบสั่งซื้อที่รออนุมัติ</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">รายการใบสั่งซื้อที่ต้องดำเนินการ</p>
+                </div>
+                <a href="{% url 'purchase:order_list' %}?status=pending_approval" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    ดูทั้งหมด
+                    <span class="sr-only">ใบสั่งซื้อที่รออนุมัติ</span>
+                </a>
+            </div>
+            <div class="border-t border-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เลขที่ใบสั่งซื้อ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้ขาย</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่สั่งซื้อ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for po in pending_orders %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ po.po_number }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ po.supplier.company_name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ po.order_date|date:"d/m/Y" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{% url 'purchase:order_detail' po_number=po.po_number %}" class="text-indigo-600 hover:text-indigo-900 mr-3">รายละเอียด</a>
+                                    <a href="{% url 'purchase:order_approve' po_number=po.po_number %}" class="text-green-600 hover:text-green-900">อนุมัติ</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">ไม่มีใบสั่งซื้อที่รออนุมัติ</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Analytics -->
+    <div class="mt-8">
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">สรุปข้อมูลการจัดซื้อ</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">ภาพรวมสถิติการจัดซื้อ</p>
+            </div>
+            <div class="border-t border-gray-200">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 p-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600">{{ pr_stats.total }}</div>
+                        <div class="text-sm text-gray-500">ใบขอซื้อทั้งหมด</div>
+                        <div class="text-xs text-gray-400 mt-1">ร่าง: {{ pr_stats.draft }} | รออนุมัติ: {{ pr_stats.pending }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600">{{ po_stats.total }}</div>
+                        <div class="text-sm text-gray-500">ใบสั่งซื้อทั้งหมด</div>
+                        <div class="text-xs text-gray-400 mt-1">ร่าง: {{ po_stats.draft }} | รออนุมัติ: {{ po_stats.pending }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-yellow-600">{{ po_stats.approved }}</div>
+                        <div class="text-sm text-gray-500">รอรับสินค้า</div>
+                        <div class="text-xs text-gray-400 mt-1">อนุมัติแล้ว รอรับของ</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600">{{ po_stats.completed }}</div>
+                        <div class="text-sm text-gray-500">รับสินค้าครบแล้ว</div>
+                        <div class="text-xs text-gray-400 mt-1">ดำเนินการเสร็จสิ้น</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

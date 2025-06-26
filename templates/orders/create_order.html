@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}สร้างออเดอร์ใหม่ - Storems{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block page_title %}สร้างออเดอร์ใหม่{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    
+
+    
+    
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            
+            
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 bg-indigo-50">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">ข้อมูลออเดอร์</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">กรอกรายละเอียดสำหรับการสร้างออเดอร์ใหม่</p>
+                </div>
+                
+                <form method="post" action="{% url 'orders:create_order' %}" id="order-form">
+                    {% csrf_token %}
+                    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                            <!-- ข้อมูลลูกค้า -->
+                            <div class="sm:col-span-3">
+                                <label for="customer_id" class="block text-sm font-medium text-gray-700">ลูกค้า <span class="text-red-500">*</span></label>
+                                <div class="mt-1">
+                                    <select id="customer_id" name="customer_id" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md select2" required>
+                                        <option value="">-- เลือกลูกค้า --</option>
+                                        {% for customer in customers %}
+                                            <option value="{{ customer.id }}">{{ customer.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- ส่วนของหมายเหตุ -->
+                            <div class="sm:col-span-6">
+                                <label for="note" class="block text-sm font-medium text-gray-700">หมายเหตุ</label>
+                                <div class="mt-1">
+                                    <textarea id="note" name="note" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">รายการสินค้า</h3>
+                        
+                        <div id="products-container">
+                            <div class="product-row grid grid-cols-12 gap-4 mb-4">
+                                <div class="col-span-7">
+                                    <select name="product_id" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md product-select select2" required>
+                                        <option value="">-- เลือกสินค้า --</option>
+                                        {% for product in products %}
+                                            <option value="{{ product.id }}">{{ product.name }} - {{ product.code }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-span-3">
+                                    <input type="number" name="quantity" min="1" value="1" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
+                                </div>
+                                <div class="col-span-2">
+                                    <button type="button" class="remove-product px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" disabled>
+                                        ลบ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="add-product" class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            เพิ่มสินค้า
+                        </button>
+                    </div>
+                    
+                    <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            บันทึกออเดอร์
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2();
+        
+        // Add product row
+        $('#add-product').click(function() {
+            const productRow = $('.product-row').first().clone();
+            productRow.find('select').val('');
+            productRow.find('input[name="quantity"]').val(1);
+            productRow.find('.remove-product').prop('disabled', false);
+            
+            $('#products-container').append(productRow);
+            
+            // Re-initialize Select2 for the new row
+            productRow.find('.select2').select2();
+        });
+        
+        // Remove product row
+        $(document).on('click', '.remove-product', function() {
+            $(this).closest('.product-row').remove();
+        });
+        
+        // Validate form before submit
+        $('#order-form').submit(function(e) {
+            let isValid = true;
+            
+            // Check if customer is selected
+            if (!$('#customer_id').val()) {
+                alert('กรุณาเลือกลูกค้า');
+                isValid = false;
+            }
+            
+            // Check if at least one product is selected
+            let productSelected = false;
+            $('.product-select').each(function() {
+                if ($(this).val()) {
+                    productSelected = true;
+                    return false;
+                }
+            });
+            
+            if (!productSelected) {
+                alert('กรุณาเลือกสินค้าอย่างน้อย 1 รายการ');
+                isValid = false;
+            }
+            
+            return isValid;
+        });
+    });
+</script>
+{% endblock %}

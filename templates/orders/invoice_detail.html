@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block nav_orders %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-6 print:shadow-none print:border-0">
+        <div class="bg-blue-600 px-4 py-3 flex justify-between items-center print:bg-white print:text-black">
+            <h3 class="text-lg font-medium text-white print:text-black">ใบแจ้งหนี้ {{ invoice.invoice_number }}</h3>
+            <div>
+                <button class="bg-white text-blue-600 hover:bg-blue-50 px-3 py-1 rounded text-sm font-medium print:hidden" onclick="window.print()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z" />
+                    </svg>
+                    พิมพ์
+                </button>
+            </div>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">บริษัท ยูนิคอร์น จำกัด</h4>
+                    <p class="text-gray-700">
+                        123 ถนนเมจิก<br>
+                        แขวงสวนหลวง เขตสวนหลวง<br>
+                        กรุงเทพมหานคร 10250<br>
+                        โทร: 02-123-4567<br>
+                        อีเมล: info@unicorn.co.th
+                    </p>
+                </div>
+                <div class="md:text-right">
+                    <h5 class="text-lg font-semibold text-gray-900 mb-2">{{ invoice.get_invoice_type_display }}</h5>
+                    <p class="text-gray-700">
+                        <span class="font-semibold">เลขที่:</span> {{ invoice.invoice_number }}<br>
+                        <span class="font-semibold">วันที่ออก:</span> {{ invoice.issue_date|date:"d F Y" }}<br>
+                        <span class="font-semibold">วันครบกำหนด:</span> {{ invoice.due_date|date:"d F Y" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <h5 class="text-lg font-semibold text-gray-900 mb-2">ข้อมูลลูกค้า</h5>
+                    <p class="text-gray-700">
+                        <span class="font-bold">{{ order.customer.name }}</span><br>
+                        {{ order.customer.address|linebreaksbr }}<br>
+                        {% if order.customer.phone %}โทร: {{ order.customer.phone }}<br>{% endif %}
+                        {% if order.customer.email %}อีเมล: {{ order.customer.email }}{% endif %}
+                    </p>
+                </div>
+                <div class="md:text-right">
+                    <h5 class="text-lg font-semibold text-gray-900 mb-2">ข้อมูลการสั่งซื้อ</h5>
+                    <p class="text-gray-700">
+                        <span class="font-semibold">เลขที่ออเดอร์:</span> {{ order.order_id }}<br>
+                        <span class="font-semibold">วันที่สั่งซื้อ:</span> {{ order.created_at|date:"d F Y" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto mb-8">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ลำดับ</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายการสินค้า</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสสินค้า</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวน</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ราคาต่อหน่วย (บาท)</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">รวม (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for detail in order_details %}
+                        <tr>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ forloop.counter }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-900">{{ detail.product.name }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ detail.product.sku }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">{{ detail.quantity }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">{{ detail.unit_price|floatformat:2 }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">{{ detail.subtotal|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="5" class="px-4 py-3 text-right text-sm font-medium text-gray-900">ยอดรวม:</th>
+                            <th class="px-4 py-3 text-right text-sm font-medium text-gray-900">{{ invoice.total_amount|floatformat:2 }}</th>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-700">ส่วนลด:</td>
+                            <td class="px-4 py-3 text-right text-sm text-gray-700">{{ invoice.discount_amount|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-700">ยอดหลังหักส่วนลด:</td>
+                            <td class="px-4 py-3 text-right text-sm text-gray-700">{{ invoice.subtotal|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-700">ภาษีมูลค่าเพิ่ม ({{ invoice.vat_rate|floatformat:2 }}%):</td>
+                            <td class="px-4 py-3 text-right text-sm text-gray-700">{{ invoice.vat_amount|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="px-4 py-3 text-right text-sm font-medium text-gray-900">ยอดรวมสุทธิ:</th>
+                            <th class="px-4 py-3 text-right text-sm font-medium text-gray-900">{{ invoice.grand_total|floatformat:2 }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2">
+                    <h5 class="text-lg font-semibold text-gray-900 mb-2">เงื่อนไขการชำระเงิน</h5>
+                    <p class="text-gray-700">
+                        1. กรุณาชำระเงินภายในวันที่ครบกำหนด<br>
+                        2. การชำระเงินสามารถโอนเข้าบัญชี "บริษัท ยูนิคอร์น จำกัด" ธนาคารกสิกรไทย สาขาพระราม 9 เลขที่บัญชี 123-4-56789-0<br>
+                        3. กรุณาส่งหลักฐานการชำระเงินมาที่อีเมล payments@unicorn.co.th
+                    </p>
+                </div>
+                <div class="text-center mt-8">
+                    <div class="border-t border-gray-300 pt-2 inline-block">
+                        <p class="text-gray-700 pt-3">ผู้มีอำนาจลงนาม</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-6 print:hidden">
+        <a href="{% url 'orders:order_detail' order.order_id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+            กลับไปหน้ารายละเอียดออเดอร์
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ปรับแต่งสไตล์สำหรับการพิมพ์ */
+    @media print {
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        
+        body {
+            font-size: 12pt;
+            color: #000;
+            background: #fff;
+        }
+        
+        .print\:hidden {
+            display: none !important;
+        }
+        
+        .print\:border-0 {
+            border: none !important;
+        }
+        
+        .print\:shadow-none {
+            box-shadow: none !important;
+        }
+        
+        .print\:bg-white {
+            background-color: white !important;
+        }
+        
+        .print\:text-black {
+            color: black !important;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any page-specific JavaScript here
+</script>
+{% endblock %}

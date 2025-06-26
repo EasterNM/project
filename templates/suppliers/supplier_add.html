@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}เพิ่มซัพพลายเออร์ใหม่ - Storems{% endblock %}
+
+{% block page_title %}เพิ่มซัพพลายเออร์ใหม่{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    
+
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+                <form method="POST" action="{% url 'suppliers:supplier_add' %}">
+                    {% csrf_token %}
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900">ข้อมูลทั่วไป</h3>
+                        <p class="mt-1 text-sm text-gray-500">ข้อมูลพื้นฐานของซัพพลายเออร์</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-6 gap-6 mb-8">
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="category" class="block text-sm font-medium text-gray-700">ประเภทซัพพลายเออร์</label>
+                            <select id="category" name="category" class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                                {% for code, name in categories %}
+                                <option value="{{ code }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="status" class="block text-sm font-medium text-gray-700">สถานะ</label>
+                            <select id="status" name="status" class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                {% for code, name in statuses %}
+                                <option value="{{ code }}" {% if code == 'active' %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-span-6">
+                            <label for="company_name" class="block text-sm font-medium text-gray-700">ชื่อบริษัท</label>
+                            <input type="text" name="company_name" id="company_name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900">ข้อมูลผู้ติดต่อ</h3>
+                        <p class="mt-1 text-sm text-gray-500">ข้อมูลผู้ติดต่อของซัพพลายเออร์</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-6 gap-6 mb-8">
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="contact_name" class="block text-sm font-medium text-gray-700">ชื่อผู้ติดต่อ</label>
+                            <input type="text" name="contact_name" id="contact_name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="contact_title" class="block text-sm font-medium text-gray-700">ตำแหน่ง</label>
+                            <input type="text" name="contact_title" id="contact_title" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="phone_number" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                            <input type="tel" name="phone_number" id="phone_number" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="fax_number" class="block text-sm font-medium text-gray-700">เบอร์แฟกซ์</label>
+                            <input type="tel" name="fax_number" id="fax_number" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="email" class="block text-sm font-medium text-gray-700">อีเมล</label>
+                            <input type="email" name="email" id="email" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="website" class="block text-sm font-medium text-gray-700">เว็บไซต์</label>
+                            <input type="url" name="website" id="website" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900">ที่อยู่</h3>
+                        <p class="mt-1 text-sm text-gray-500">ข้อมูลที่อยู่ของซัพพลายเออร์</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-6 gap-6 mb-8">
+                        <div class="col-span-6">
+                            <label for="address" class="block text-sm font-medium text-gray-700">ที่อยู่</label>
+                            <textarea name="address" id="address" rows="3" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required></textarea>
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="city" class="block text-sm font-medium text-gray-700">เมือง/เขต</label>
+                            <input type="text" name="city" id="city" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="state" class="block text-sm font-medium text-gray-700">จังหวัด</label>
+                            <input type="text" name="state" id="state" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="postal_code" class="block text-sm font-medium text-gray-700">รหัสไปรษณีย์</label>
+                            <input type="text" name="postal_code" id="postal_code" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="country" class="block text-sm font-medium text-gray-700">ประเทศ</label>
+                            <input type="text" name="country" id="country" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="ไทย">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900">ข้อมูลการเงิน</h3>
+                        <p class="mt-1 text-sm text-gray-500">ข้อมูลการเงินของซัพพลายเออร์</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-6 gap-6 mb-8">
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="tax_id" class="block text-sm font-medium text-gray-700">เลขประจำตัวผู้เสียภาษี</label>
+                            <input type="text" name="tax_id" id="tax_id" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="bank_name" class="block text-sm font-medium text-gray-700">ธนาคาร</label>
+                            <input type="text" name="bank_name" id="bank_name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="bank_account_number" class="block text-sm font-medium text-gray-700">เลขที่บัญชีธนาคาร</label>
+                            <input type="text" name="bank_account_number" id="bank_account_number" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="payment_terms" class="block text-sm font-medium text-gray-700">เงื่อนไขการชำระเงิน</label>
+                            <input type="text" name="payment_terms" id="payment_terms" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="credit_limit" class="block text-sm font-medium text-gray-700">วงเงินเครดิต (บาท)</label>
+                            <input type="number" name="credit_limit" id="credit_limit" step="0.01" min="0" value="0" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    
+                    <div class="pt-5">
+                        <div class="flex justify-end">
+                            <a href="{% url 'suppliers:supplier_list' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3">
+                                ยกเลิก
+                            </a>
+                            <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                บันทึกข้อมูล
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

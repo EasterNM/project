@@ -1,0 +1,710 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รายงานและการวิเคราะห์สินค้า - Storems{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+{% endblock %}
+
+{% block nav_products %}bg-indigo-700 text-white{% endblock %}
+
+{% block page_title %}รายงานและการวิเคราะห์สินค้า{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'products:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+    กลับไปที่หน้าสินค้า
+</a>
+<a href="{% url 'products:export_products' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+    ส่งออกข้อมูล CSV
+</a>
+{% endblock %}
+
+{% block content %}
+
+    <main>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Filter Section -->
+            <div class="mb-8 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">ตัวกรองข้อมูล</h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <form method="get" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-gray-700">หมวดหมู่</label>
+                            <select id="category" name="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="">ทุกหมวดหมู่</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if filters.category_id == category.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="brand" class="block text-sm font-medium text-gray-700">แบรนด์</label>
+                            <select id="brand" name="brand" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="">ทุกแบรนด์</option>
+                                {% for brand in brands %}
+                                <option value="{{ brand.id }}" {% if filters.brand_id == brand.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ brand.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="date_from" class="block text-sm font-medium text-gray-700">วันที่เริ่มต้น</label>
+                            <input type="date" id="date_from" name="date_from" value="{{ filters.date_from|default:"" }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        
+                        <div>
+                            <label for="date_to" class="block text-sm font-medium text-gray-700">วันที่สิ้นสุด</label>
+                            <input type="date" id="date_to" name="date_to" value="{{ filters.date_to|default:"" }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        
+                        <div class="sm:col-span-2 lg:col-span-4">
+                            <div class="flex space-x-3">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                    </svg>
+                                    กรองข้อมูล
+                                </button>
+                                <a href="{% url 'products:reports' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    รีเซ็ต
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- สินค้าตามหมวดหมู่ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            สินค้าตามหมวดหมู่
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="productCategoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- สินค้าตามแบรนด์ -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            สินค้าตามแบรนด์
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="productBrandChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- การกระจายราคา -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            การกระจายราคาสินค้า
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="priceDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- แนวโน้มเพิ่มสินค้า -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            แนวโน้มการเพิ่มสินค้า (รายเดือน)
+                        </h3>
+                    </div>
+                    <div class="p-6 h-80">
+                        <canvas id="productTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Statistics -->
+            <div class="mt-8">
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            สถิติสรุป
+                        </h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                            <!-- รวมสินค้า -->
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-blue-100 truncate">
+                                                    รวมสินค้าทั้งหมด
+                                                </dt>
+                                                <dd class="text-lg font-medium text-white">
+                                                    {{ total_products|default:0 }}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- รวมหมวดหมู่ -->
+                            <div class="bg-gradient-to-r from-green-500 to-green-600 overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-green-100 truncate">
+                                                    รวมหมวดหมู่
+                                                </dt>
+                                                <dd class="text-lg font-medium text-white">
+                                                    {{ total_categories|default:0 }}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- รวมแบรนด์ -->
+                            <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-yellow-100 truncate">
+                                                    รวมแบรนด์
+                                                </dt>
+                                                <dd class="text-lg font-medium text-white">
+                                                    {{ total_brands|default:0 }}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ราคาเฉลี่ย -->
+                            <div class="bg-gradient-to-r from-purple-500 to-purple-600 overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-purple-100 truncate">
+                                                    ราคาเฉลี่ย
+                                                </dt>
+                                                <dd class="text-lg font-medium text-white">
+                                                    ฿{{ price_stats.avg_price_a|floatformat:2|default:"0.00" }}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div class="mt-8 space-y-8">
+                <!-- Price Analysis -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">การวิเคราะห์ราคา</h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-blue-700">ราคาทุนต่ำสุด</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-blue-900">฿{{ price_analysis.min_cost|floatformat:2|default:"0.00" }}</dd>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-blue-700">ราคาทุนสูงสุด</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-blue-900">฿{{ price_analysis.max_cost|floatformat:2|default:"0.00" }}</dd>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-green-700">ราคาขายต่ำสุด</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-green-900">฿{{ price_analysis.min_price_a|floatformat:2|default:"0.00" }}</dd>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-green-700">ราคาขายสูงสุด</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-green-900">฿{{ price_analysis.max_price_a|floatformat:2|default:"0.00" }}</dd>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <div class="bg-purple-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-purple-700">มูลค่าสินค้าคงเหลือรวม (ราคาทุน × จุดสั่งซื้อ)</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-purple-900">฿{{ price_analysis.total_value|floatformat:2|default:"0.00" }}</dd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Analysis -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">การวิเคราะห์สต็อกสินค้า</h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-gray-700">รวมจุดสั่งซื้อ</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-gray-900">{{ stock_analysis.total_reorder_points|default:0 }}</dd>
+                            </div>
+                            <div class="bg-yellow-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-yellow-700">จุดสั่งซื้อเฉลี่ย</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-yellow-900">{{ stock_analysis.avg_reorder_point|floatformat:0|default:0 }}</dd>
+                            </div>
+                            <div class="bg-red-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-red-700">สินค้าไม่ได้ตั้งจุดสั่งซื้อ</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-red-900">{{ stock_analysis.zero_reorder_count|default:0 }}</dd>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-4">
+                                <dt class="text-sm font-medium text-orange-700">สินค้าจุดสั่งซื้อสูง (≥100)</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-orange-900">{{ stock_analysis.high_reorder_count|default:0 }}</dd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Tables -->
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- Top Performing Categories -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            หมวดหมู่ยอดนิยม
+                        </h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            หมวดหมู่
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            จำนวนสินค้า
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for category in products_by_category %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ category.name }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ category.count }}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            ไม่มีข้อมูลหมวดหมู่
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Performing Brands -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            แบรนด์ยอดนิยม
+                        </h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            แบรนด์
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            จำนวนสินค้า
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for brand in products_by_brand %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ brand.name }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ brand.count }}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            ไม่มีข้อมูลแบรนด์
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Range Analysis -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            การวิเคราะห์ช่วงราคา
+                        </h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            ช่วงราคา
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            จำนวนสินค้า
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            เปอร์เซ็นต์
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for range in price_ranges %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ range.range_label }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ range.count }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ range.percentage|floatformat:1 }}%
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            ไม่มีข้อมูลการกระจายราคา
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Profit Products -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            สินค้ากำไรดี (Top 10)
+                        </h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            สินค้า
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            ราคาขาย
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            กำไร (%)
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for product in top_profit_products %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">{{ product.name|truncatechars:40 }}</div>
+                                            <div class="text-sm text-gray-500">{{ product.sku }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            ฿{{ product.price_a|floatformat:2 }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                {{ product.profit_margin|floatformat:1 }}%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            ไม่มีข้อมูลสินค้ากำไรดี
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Most Expensive Products -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">สินค้าราคาสูงสุด (Top 10)</h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สินค้า</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หมวดหมู่</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ราคาขาย</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for product in most_expensive_products %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">{{ product.name|truncatechars:30 }}</div>
+                                            <div class="text-sm text-gray-500">{{ product.sku }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ product.category.name|default:"ไม่ระบุ" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
+                                            ฿{{ product.price_a|floatformat:2 }}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">ไม่มีข้อมูล</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cheapest Products -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">สินค้าราคาต่ำสุด (Top 10)</h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สินค้า</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หมวดหมู่</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ราคาขาย</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for product in cheapest_products %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">{{ product.name|truncatechars:30 }}</div>
+                                            <div class="text-sm text-gray-500">{{ product.sku }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ product.category.name|default:"ไม่ระบุ" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                                            ฿{{ product.price_a|floatformat:2 }}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">ไม่มีข้อมูล</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // สินค้าตามหมวดหมู่
+    const categoryChart = new Chart(document.getElementById('productCategoryChart'), {
+        type: 'doughnut',
+        data: {
+            labels: [
+                {% for category in products_by_category %}
+                '{{ category.name }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for category in products_by_category %}
+                    {{ category.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                    '#F97316', '#06B6D4', '#84CC16', '#EC4899', '#6B7280'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // สินค้าตามแบรนด์
+    const brandChart = new Chart(document.getElementById('productBrandChart'), {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for brand in products_by_brand %}
+                '{{ brand.name }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'จำนวนสินค้า',
+                data: [
+                    {% for brand in products_by_brand %}
+                    {{ brand.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: '#10B981'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // การกระจายราคา
+    const priceChart = new Chart(document.getElementById('priceDistributionChart'), {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for range in price_ranges %}
+                '{{ range.range_label }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'จำนวนสินค้า',
+                data: [
+                    {% for range in price_ranges %}
+                    {{ range.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: '#F59E0B'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // แนวโน้มเพิ่มสินค้า (ข้อมูลจำลอง)
+    const trendChart = new Chart(document.getElementById('productTrendChart'), {
+        type: 'line',
+        data: {
+            labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'],
+            datasets: [{
+                label: 'สินค้าที่เพิ่ม',
+                data: [12, 19, 8, 15, 25, 18],
+                borderColor: '#8B5CF6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

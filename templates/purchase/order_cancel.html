@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ยกเลิกใบสั่งซื้อ {{ order.po_number }}{% endblock %}
+
+{% block page_title %}ยกเลิกใบสั่งซื้อ {{ order.po_number }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">ยกเลิกใบสั่งซื้อ {{ order.po_number }}</h1>
+        
+        <!-- ข้อมูลสรุปใบสั่งซื้อ -->
+        <div class="bg-gray-50 p-4 rounded-lg mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">ผู้ขาย: <span class="font-semibold">{{ order.supplier.company_name }}</span></p>
+                    <p class="text-sm text-gray-600">วันที่สั่งซื้อ: <span class="font-semibold">{{ order.order_date|date:"d M Y" }}</span></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">มูลค่ารวม: <span class="font-semibold">{{ order.total_amount|floatformat:2 }} บาท</span></p>
+                    <p class="text-sm text-gray-600">วันที่คาดว่าจะได้รับ: <span class="font-semibold">{{ order.expected_delivery_date|date:"d M Y" }}</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ฟอร์มยกเลิก -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">เหตุผลที่ยกเลิก</label>
+                <textarea id="reason" name="reason" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required></textarea>
+            </div>
+            
+            <div class="border-t pt-4 flex items-center justify-between">
+                <a href="{% url 'purchase:order_detail' po_number=order.po_number %}" class="text-gray-500 hover:text-gray-700 py-2 px-4 rounded">
+                    ยกเลิก
+                </a>
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    ยืนยันการยกเลิกใบสั่งซื้อ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
