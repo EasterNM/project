@@ -1,0 +1,27 @@
+<!-- เพิ่มใน template สำหรับทดสอบ -->
+<div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+    <button id="manual-install-btn" onclick="testInstallPWA()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
+        🔧 ทดสอบ Install PWA
+    </button>
+</div>
+
+<script>
+function testInstallPWA() {
+    if ('serviceWorker' in navigator) {
+        // แสดงสถานะ Service Worker
+        navigator.serviceWorker.ready.then(function(registration) {
+            console.log('Service Worker พร้อมแล้ว:', registration);
+            alert('Service Worker พร้อมแล้ว! ลองดู Chrome DevTools → Application → Service Workers');
+        });
+        
+        // ตรวจสอบ beforeinstallprompt
+        if (window.deferredPrompt) {
+            window.deferredPrompt.prompt();
+        } else {
+            alert('PWA Install Prompt ยังไม่พร้อม อาจต้องรอสักครู่หรือรีเฟรชหน้า');
+        }
+    } else {
+        alert('บราวเซอร์ไม่รองรับ Service Worker');
+    }
+}
+</script>

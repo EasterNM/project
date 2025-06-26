@@ -60,6 +60,11 @@
                                 </div>
                             </div>
                             <a href="{% url 'logout' %}" class="ml-3 text-white hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium">ออกจากระบบ</a>
+                            
+                            <!-- PWA Install Button -->
+                            <button id="pwa-install-btn" onclick="installPWA()" style="display: none;" class="ml-3 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                📱 ติดตั้ง App
+                            </button>
                         </div>
                     </div>
                     
@@ -132,6 +137,82 @@
     {% block modal_content %}{% endblock %}
     
     {% block extra_js %}{% endblock %}
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/js/serviceworker.js')
+                .then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+        
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt fired');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button
+            const installButton = document.getElementById('pwa-install-btn');
+            if (installButton) {
+                installButton.style.display = 'block';
+            }
+        });
+
+        // Handle PWA install
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+        
+        // Test PWA function
+        function testInstallPWA() {
+            if ('serviceWorker' in navigator) {
+                // แสดงสถานะ Service Worker
+                navigator.serviceWorker.ready.then(function(registration) {
+                    console.log('Service Worker พร้อมแล้ว:', registration);
+                    
+                    // ตรวจสอบ PWA criteria
+                    let criteria = [
+                        'Manifest: ' + (document.querySelector('link[rel="manifest"]') ? '✅' : '❌'),
+                        'Service Worker: ✅',
+                        'HTTPS: ' + (location.protocol === 'https:' ? '✅' : '❌ (development mode)'),
+                        'Icons: ' + (document.querySelector('link[rel="icon"]') ? '✅' : '❌')
+                    ];
+                    
+                    alert('PWA Status:\n\n' + criteria.join('\n') + '\n\nลองดู Chrome DevTools → Application → Manifest');
+                });
+                
+                // ตรวจสอบ beforeinstallprompt
+                if (window.deferredPrompt) {
+                    window.deferredPrompt.prompt();
+                } else {
+                    console.log('PWA Install Prompt ยังไม่พร้อม');
+                }
+            } else {
+                alert('บราวเซอร์ไม่รองรับ Service Worker');
+            }
+        }
+
+    </script>
+    
     <script>
         // Global Alpine.js initialization
         document.addEventListener('alpine:init', () => {
