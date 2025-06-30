@@ -25,7 +25,7 @@
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <span class="text-white font-bold text-xl">Storems</span>
+                            <a href="{% url 'general:dashboard' %}" class="text-white font-bold text-xl">Storems</a>
                         </div>
                         <div class="hidden md:block">
                             <div class="ml-10 flex items-baseline space-x-4">
@@ -88,13 +88,69 @@
                     </div>
                     
                     <!-- Mobile menu button -->
-                    <div class="md:hidden">
-                        <button type="button" class="bg-indigo-600 inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-800 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+                    <div class="md:hidden" x-data="{ open: false }">
+                        <button type="button" @click="open = !open" class="bg-indigo-600 inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-800 focus:ring-white" aria-controls="mobile-menu" :aria-expanded="open">
                             <span class="sr-only">Open main menu</span>
-                            <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <!-- Hamburger icon when menu is closed -->
+                            <svg x-show="!open" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
+                            <!-- X icon when menu is open -->
+                            <svg x-show="open" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
+                        
+                        <!-- Mobile menu dropdown -->
+                        <div x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" style="display: none;">
+                            <div class="py-1">
+                                <!-- Storems Logo/Brand as link to dashboard -->
+                                <a href="{% url 'general:dashboard' %}" class="text-indigo-600 hover:bg-gray-100 block px-4 py-2 text-sm font-bold border-b">
+                                    Storems
+                                </a>
+                                
+                                <!-- หน้าหลัก - ทุกคนเข้าได้ -->
+                                <a href="{% url 'general:dashboard' %}" class="text-gray-700 hover:bg-gray-100 block px-4 py-2 text-sm">หน้าหลัก</a>
+                                
+                                <!-- คลังสินค้า -->
+                                {% if user_perms.can_view_inventory %}
+                                    <a href="{% url 'inventory:dashboard' %}" class="text-gray-700 hover:bg-gray-100 block px-4 py-2 text-sm">คลังสินค้า</a>
+                                {% endif %}
+                                
+                                <!-- จัดซื้อ -->
+                                {% if user_perms.can_view_purchase %}
+                                    <a href="{% url 'purchase:dashboard' %}" class="text-gray-700 hover:bg-gray-100 block px-4 py-2 text-sm">จัดซื้อ</a>
+                                {% endif %}
+                                
+                                <!-- การสั่งซื้อสินค้า -->
+                                {% if user_perms.can_view_orders %}
+                                    <a href="{% url 'orders:dashboard' %}" class="text-gray-700 hover:bg-gray-100 block px-4 py-2 text-sm">การสั่งซื้อสินค้า</a>
+                                {% endif %}
+                                
+                                <!-- สินค้า -->
+                                {% if user_perms.can_view_products %}
+                                    <a href="{% url 'products:dashboard' %}" class="text-gray-700 hover:bg-gray-100 block px-4 py-2 text-sm">สินค้า</a>
+                                {% endif %}
+                                
+                                <!-- ซัพพลายเออร์ -->
+                                {% if user_perms.can_view_suppliers %}
+                                    <a href="{% url 'suppliers:dashboard' %}" class="text-gray-700 hover:bg-gray-100 block px-4 py-2 text-sm">ซัพพลายเออร์</a>
+                                {% endif %}
+                                
+                                <!-- ลูกค้า -->
+                                {% if user_perms.can_view_customers %}
+                                    <a href="{% url 'customers:dashboard' %}" class="text-gray-700 hover:bg-gray-100 block px-4 py-2 text-sm">ลูกค้า</a>
+                                {% endif %}
+                                
+                                <!-- User Info and Logout -->
+                                <div class="border-t mt-2 pt-2">
+                                    <div class="px-4 py-2 text-sm text-gray-500">
+                                        {{ request.user.get_full_name }}
+                                    </div>
+                                    <a href="{% url 'logout' %}" class="text-red-600 hover:bg-gray-100 block px-4 py-2 text-sm">ออกจากระบบ</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
