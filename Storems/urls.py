@@ -23,15 +23,14 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('App_Accounts.urls')),
-    path('accounts/', include('App_Accounts.urls')),
-    path('', include('App_General.urls')),
     path('products/', include('App_Products.urls', namespace='products')),
     path('inventory/', include('App_Inventory.urls', namespace='inventory')),
     path('purchase/', include('App_Purchase.urls', namespace='purchase')),
     path('orders/', include('App_OrderingProductForSale.urls', namespace='orders')),
     path('customers/', include('App_Customer.urls', namespace='customers')),
     path('suppliers/', include('App_Supplier.urls', namespace='suppliers')),
-    path('', include('pwa.urls')),  # PWA URLs
+    path('pwa/', include('pwa.urls')),  # PWA URLs
+    path('', include('App_General.urls')),
 ]
 
 if settings.DEBUG:

@@ -147,3 +147,8 @@ def dashboard(request):
     }
     
     return render(request, 'general/dashboard.html', context)
+
+@login_required
+def permission_demo(request):
+    """หน้าตัวอย่างการใช้งานระบบสิทธิ์"""
+    return render(request, 'general/permission_demo.html')

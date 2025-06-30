@@ -1,0 +1,56 @@
+<!-- ตัวอย่างการใช้สิทธิ์ใน Templates -->
+{% load permission_tags %}
+
+<!-- แสดงเมนูตามสิทธิ์ -->
+<nav class="space-y-1">
+    {% if user|can_view_module:"products" %}
+        <a href="{% url 'products:list' %}" class="menu-item">จัดการสินค้า</a>
+    {% endif %}
+    
+    {% if user|can_view_module:"inventory" %}
+        <a href="{% url 'inventory:dashboard' %}" class="menu-item">คลังสินค้า</a>
+    {% endif %}
+    
+    {% if user|in_group:"ผู้จัดการ (Manager)" %}
+        <a href="{% url 'reports:manager' %}" class="menu-item">รายงานผู้จัดการ</a>
+    {% endif %}
+</nav>
+
+<!-- ปุ่มแอคชันตามสิทธิ์ -->
+<div class="action-buttons">
+    {% if user|can_create:"App_Products.product" %}
+        <a href="{% url 'products:create' %}" class="btn btn-primary">เพิ่มสินค้าใหม่</a>
+    {% endif %}
+    
+    {% if user|can_edit:"App_Products.product" %}
+        <a href="{% url 'products:edit' product.id %}" class="btn btn-secondary">แก้ไข</a>
+    {% endif %}
+    
+    {% if user|can_delete:"App_Products.product" %}
+        <button class="btn btn-danger" onclick="deleteProduct({{ product.id }})">ลบ</button>
+    {% endif %}
+</div>
+
+<!-- การใช้ check_module_access -->
+{% check_module_access user "purchase" as purchase_access %}
+{% if purchase_access.can_approve %}
+    <div class="approval-section">
+        <h3>การอนุมัติ</h3>
+        <button class="btn btn-success">อนุมัติ</button>
+        <button class="btn btn-danger">ไม่อนุมัติ</button>
+    </div>
+{% endif %}
+
+<!-- แสดง badge บทบาท -->
+<div class="user-info">
+    <span class="user-name">{{ user.get_full_name }}</span>
+    {% user_role_badge user %}
+</div>
+
+<!-- เงื่อนไขซับซ้อน -->
+{% if user.is_superuser or user|in_group:"ผู้จัดการ (Manager)" %}
+    <div class="admin-panel">
+        <h3>แผงควบคุมผู้ดูแล</h3>
+        <!-- เนื้อหาสำหรับแอดมินและผู้จัดการ -->
+    </div>
+{% endif %}

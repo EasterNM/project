@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load permission_tags %}
+
+{% block title %}ทดสอบระบบสิทธิ์ - Storems{% endblock %}
+
+{% block page_title %}ทดสอบระบบสิทธิ์และกลุ่มผู้ใช้{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- User Info -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">ข้อมูลผู้ใช้ปัจจุบัน</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">แสดงข้อมูลสิทธิ์และกลุ่มของผู้ใช้</p>
+        </div>
+        <div class="border-t border-gray-200">
+            <dl>
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">ชื่อผู้ใช้</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ user.username }}</dd>
+                </div>
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">ชื่อ-นามสกุล</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ user.get_full_name|default:"ไม่ระบุ" }}</dd>
+                </div>
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Superuser</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {% if user.is_superuser %}
+                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded">✅ ใช่</span>
+                        {% else %}
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded">❌ ไม่ใช่</span>
+                        {% endif %}
+                    </dd>
+                </div>
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">บทบาท</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {% user_role_badge user %}
+                        <span class="ml-2">{{ user|user_role_display }}</span>
+                    </dd>
+                </div>
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">กลุ่มผู้ใช้</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {% for group in user.groups.all %}
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">{{ group.name }}</span>
+                        {% empty %}
+                            <span class="text-gray-500">ไม่ได้อยู่ในกลุ่มใด</span>
+                        {% endfor %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Module Access Testing -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">การเข้าถึงโมดูล</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">ทดสอบการเข้าถึงโมดูลต่างๆ</p>
+        </div>
+        <div class="border-t border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                <!-- Dashboard -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900">หน้าหลัก (Dashboard)</h4>
+                    <p class="text-sm text-gray-500 mt-1">
+                        {% if user|can_view_module:"dashboard" %}
+                            <span class="text-green-600">✅ สามารถเข้าถึงได้</span>
+                        {% else %}
+                            <span class="text-red-600">❌ ไม่สามารถเข้าถึงได้</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Products -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900">สินค้า (Products)</h4>
+                    {% check_module_access user "products" as product_access %}
+                    <div class="text-sm text-gray-500 mt-1">
+                        <div>ดู: {% if product_access.can_view %}✅{% else %}❌{% endif %}</div>
+                        <div>สร้าง: {% if product_access.can_create %}✅{% else %}❌{% endif %}</div>
+                        <div>แก้ไข: {% if product_access.can_edit %}✅{% else %}❌{% endif %}</div>
+                        <div>ลบ: {% if product_access.can_delete %}✅{% else %}❌{% endif %}</div>
+                    </div>
+                </div>
+
+                <!-- Inventory -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900">คลังสินค้า (Inventory)</h4>
+                    {% check_module_access user "inventory" as inventory_access %}
+                    <div class="text-sm text-gray-500 mt-1">
+                        <div>ดู: {% if inventory_access.can_view %}✅{% else %}❌{% endif %}</div>
+                        <div>สร้าง: {% if inventory_access.can_create %}✅{% else %}❌{% endif %}</div>
+                        <div>แก้ไข: {% if inventory_access.can_edit %}✅{% else %}❌{% endif %}</div>
+                        <div>ลบ: {% if inventory_access.can_delete %}✅{% else %}❌{% endif %}</div>
+                    </div>
+                </div>
+
+                <!-- Purchase -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900">จัดซื้อ (Purchase)</h4>
+                    {% check_module_access user "purchase" as purchase_access %}
+                    <div class="text-sm text-gray-500 mt-1">
+                        <div>ดู: {% if purchase_access.can_view %}✅{% else %}❌{% endif %}</div>
+                        <div>สร้าง: {% if purchase_access.can_create %}✅{% else %}❌{% endif %}</div>
+                        <div>แก้ไข: {% if purchase_access.can_edit %}✅{% else %}❌{% endif %}</div>
+                        <div>อนุมัติ: {% if purchase_access.can_approve %}✅{% else %}❌{% endif %}</div>
+                    </div>
+                </div>
+
+                <!-- Suppliers -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900">ซัพพลายเออร์ (Suppliers)</h4>
+                    {% check_module_access user "suppliers" as supplier_access %}
+                    <div class="text-sm text-gray-500 mt-1">
+                        <div>ดู: {% if supplier_access.can_view %}✅{% else %}❌{% endif %}</div>
+                        <div>สร้าง: {% if supplier_access.can_create %}✅{% else %}❌{% endif %}</div>
+                        <div>แก้ไข: {% if supplier_access.can_edit %}✅{% else %}❌{% endif %}</div>
+                        <div>ลบ: {% if supplier_access.can_delete %}✅{% else %}❌{% endif %}</div>
+                    </div>
+                </div>
+
+                <!-- Customers -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900">ลูกค้า (Customers)</h4>
+                    {% check_module_access user "customers" as customer_access %}
+                    <div class="text-sm text-gray-500 mt-1">
+                        <div>ดู: {% if customer_access.can_view %}✅{% else %}❌{% endif %}</div>
+                        <div>สร้าง: {% if customer_access.can_create %}✅{% else %}❌{% endif %}</div>
+                        <div>แก้ไข: {% if customer_access.can_edit %}✅{% else %}❌{% endif %}</div>
+                        <div>ลบ: {% if customer_access.can_delete %}✅{% else %}❌{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Testing -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">ทดสอบการตรวจสอบกลุ่ม</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">ตรวจสอบว่าผู้ใช้อยู่ในกลุ่มไหนบ้าง</p>
+        </div>
+        <div class="border-t border-gray-200 p-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div class="font-medium">Manager</div>
+                    <div class="{% if user|in_group:'ผู้จัดการ (Manager)' %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if user|in_group:"ผู้จัดการ (Manager)" %}✅ ใช่{% else %}❌ ไม่ใช่{% endif %}
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="font-medium">Warehouse Staff</div>
+                    <div class="{% if user|in_group:'พนักงานคลัง (Warehouse Staff)' %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if user|in_group:"พนักงานคลัง (Warehouse Staff)" %}✅ ใช่{% else %}❌ ไม่ใช่{% endif %}
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="font-medium">Sales Staff</div>
+                    <div class="{% if user|in_group:'พนักงานขาย (Sales Staff)' %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if user|in_group:"พนักงานขาย (Sales Staff)" %}✅ ใช่{% else %}❌ ไม่ใช่{% endif %}
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="font-medium">Accountant</div>
+                    <div class="{% if user|in_group:'นักบัญชี (Accountant)' %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if user|in_group:"นักบัญชี (Accountant)" %}✅ ใช่{% else %}❌ ไม่ใช่{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Testing -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">การทดสอบลิงก์ Logout</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">ทดสอบการทำงานของระบบออกจากระบบ</p>
+        </div>
+        <div class="border-t border-gray-200 p-6">
+            <div class="flex space-x-4">
+                <a href="{% url 'accounts:logout' %}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    ทดสอบ Logout
+                </a>
+                <a href="{% url 'general:dashboard' %}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    กลับหน้าหลัก
+                </a>
+                <a href="/admin/" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    Django Admin
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
