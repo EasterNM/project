@@ -19,28 +19,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
-from django.http import HttpResponse
-
-# Views to handle PWA-related requests
-def manifest_json(request):
-    return HttpResponse('{}', content_type='application/json', status=200)
-
-def serviceworker_js(request):
-    return HttpResponse('// No service worker available', content_type='application/javascript', status=200)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('App_Accounts.urls')),
     path('', include('App_General.urls')),
-    path('products/', include('App_Products.urls', namespace='products')),
-    path('inventory/', include('App_Inventory.urls', namespace='inventory')),
-    path('purchase/', include('App_Purchase.urls', namespace='purchase')),
-    path('orders/', include('App_OrderingProductForSale.urls', namespace='orders')),
-    path('customers/', include('App_Customer.urls', namespace='customers')),
-    path('suppliers/', include('App_Supplier.urls', namespace='suppliers')),
-    # Handle PWA-related requests to prevent 404 errors in logs
-    path('manifest.json', manifest_json, name='manifest'),
-    path('serviceworker.js', serviceworker_js, name='serviceworker'),
+    path('', RedirectView.as_view(url='/accounts/login/'), name='home'),
 ]
 
 if settings.DEBUG:

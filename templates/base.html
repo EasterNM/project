@@ -1,16 +1,13 @@
 {% load static %}
-{% load pwa %}
-{% load permission_tags %}
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Disable PWA features -->
+    <meta name="mobile-web-app-capable" content="no">
+    <meta name="apple-mobile-web-app-capable" content="no">
     <title>{% block title %}Storems - ระบบจัดการคลังสินค้า{% endblock %}</title>
-    
-    <!-- PWA Meta Tags -->
-    {% progressive_web_app_meta %}
-    
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.5/dist/cdn.min.js" defer></script>
@@ -32,33 +29,37 @@
                         </div>
                         <div class="hidden md:block">
                             <div class="ml-10 flex items-baseline space-x-4">
-                                <!-- Navigation with Permission Checks -->
-                                {% if user|can_view_module:"dashboard" %}
+                                <!-- หน้าหลัก - ทุกคนเข้าได้ -->
                                 <a href="{% url 'general:dashboard' %}" class="{% block nav_dashboard %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">หน้าหลัก</a>
+                                
+                                <!-- คลังสินค้า -->
+                                {% if user_perms.can_view_inventory %}
+                                    <a href="{% url 'inventory:dashboard' %}" class="{% block nav_inventory %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">คลังสินค้า</a>
                                 {% endif %}
                                 
-                                {% if user|can_view_module:"inventory" %}
-                                <a href="{% url 'inventory:dashboard' %}" class="{% block nav_inventory %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">คลังสินค้า</a>
+                                <!-- จัดซื้อ -->
+                                {% if user_perms.can_view_purchase %}
+                                    <a href="{% url 'purchase:dashboard' %}" class="{% block nav_purchase %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">จัดซื้อ</a>
                                 {% endif %}
                                 
-                                {% if user|can_view_module:"purchase" %}
-                                <a href="{% url 'purchase:dashboard' %}" class="{% block nav_purchase %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">จัดซื้อ</a>
+                                <!-- การสั่งซื้อสินค้า -->
+                                {% if user_perms.can_view_orders %}
+                                    <a href="{% url 'orders:dashboard' %}" class="{% block nav_orders %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">การสั่งซื้อสินค้า</a>
                                 {% endif %}
                                 
-                                {% if user|can_view_module:"orders" %}
-                                <a href="{% url 'orders:dashboard' %}" class="{% block nav_orders %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">การสั่งซื้อสินค้า</a>
+                                <!-- สินค้า -->
+                                {% if user_perms.can_view_products %}
+                                    <a href="{% url 'products:dashboard' %}" class="{% block nav_products %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">สินค้า</a>
                                 {% endif %}
                                 
-                                {% if user|can_view_module:"products" %}
-                                <a href="{% url 'products:dashboard' %}" class="{% block nav_products %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">สินค้า</a>
+                                <!-- ซัพพลายเออร์ -->
+                                {% if user_perms.can_view_suppliers %}
+                                    <a href="{% url 'suppliers:dashboard' %}" class="{% block nav_suppliers %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">ซัพพลายเออร์</a>
                                 {% endif %}
                                 
-                                {% if user|can_view_module:"suppliers" %}
-                                <a href="{% url 'suppliers:dashboard' %}" class="{% block nav_suppliers %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">ซัพพลายเออร์</a>
-                                {% endif %}
-                                
-                                {% if user|can_view_module:"customers" %}
-                                <a href="{% url 'customers:dashboard' %}" class="{% block nav_customers %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">ลูกค้า</a>
+                                <!-- ลูกค้า -->
+                                {% if user_perms.can_view_customers %}
+                                    <a href="{% url 'customers:dashboard' %}" class="{% block nav_customers %}text-white hover:bg-indigo-500{% endblock %} px-3 py-2 rounded-md text-sm font-medium">ลูกค้า</a>
                                 {% endif %}
                                 
                                 {% block additional_nav_items %}{% endblock %}
@@ -67,11 +68,6 @@
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-4 flex items-center md:ml-6">
-                            <!-- User Role Badge -->
-                            <div class="mr-3">
-                                {% user_role_badge user %}
-                            </div>
-                            
                             <div class="ml-3 relative">
                                 <div>
                                     <button class="max-w-xs bg-indigo-600 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white">
@@ -87,12 +83,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <a href="{% url 'accounts:logout' %}" class="ml-3 text-white hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium">ออกจากระบบ</a>
-                            
-                            <!-- PWA Install Button -->
-                            <button id="pwa-install-btn" onclick="installPWA()" style="display: none;" class="ml-3 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                                📱 ติดตั้ง App
-                            </button>
+                            <a href="{% url 'logout' %}" class="ml-3 text-white hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium">ออกจากระบบ</a>
                         </div>
                     </div>
                     
@@ -165,82 +156,6 @@
     {% block modal_content %}{% endblock %}
     
     {% block extra_js %}{% endblock %}
-    
-    <!-- PWA Service Worker Registration -->
-    <script>
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/static/js/serviceworker.js')
-                .then(function(registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                })
-                .catch(function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
-        
-        // PWA Install Prompt
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('beforeinstallprompt fired');
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            // Show install button
-            const installButton = document.getElementById('pwa-install-btn');
-            if (installButton) {
-                installButton.style.display = 'block';
-            }
-        });
-
-        // Handle PWA install
-        function installPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                    } else {
-                        console.log('User dismissed the install prompt');
-                    }
-                    deferredPrompt = null;
-                });
-            }
-        }
-        
-        // Test PWA function
-        function testInstallPWA() {
-            if ('serviceWorker' in navigator) {
-                // แสดงสถานะ Service Worker
-                navigator.serviceWorker.ready.then(function(registration) {
-                    console.log('Service Worker พร้อมแล้ว:', registration);
-                    
-                    // ตรวจสอบ PWA criteria
-                    let criteria = [
-                        'Manifest: ' + (document.querySelector('link[rel="manifest"]') ? '✅' : '❌'),
-                        'Service Worker: ✅',
-                        'HTTPS: ' + (location.protocol === 'https:' ? '✅' : '❌ (development mode)'),
-                        'Icons: ' + (document.querySelector('link[rel="icon"]') ? '✅' : '❌')
-                    ];
-                    
-                    alert('PWA Status:\n\n' + criteria.join('\n') + '\n\nลองดู Chrome DevTools → Application → Manifest');
-                });
-                
-                // ตรวจสอบ beforeinstallprompt
-                if (window.deferredPrompt) {
-                    window.deferredPrompt.prompt();
-                } else {
-                    console.log('PWA Install Prompt ยังไม่พร้อม');
-                }
-            } else {
-                alert('บราวเซอร์ไม่รองรับ Service Worker');
-            }
-        }
-
-    </script>
-    
     <script>
         // Global Alpine.js initialization
         document.addEventListener('alpine:init', () => {
