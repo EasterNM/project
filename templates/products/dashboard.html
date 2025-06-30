@@ -260,6 +260,13 @@
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="px-4 py-5 sm:p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">สินค้ากำไรดี (Top 5)</h3>
+                        
+                        <!-- Debug Info -->
+                        <div class="mb-4 p-3 bg-gray-50 rounded-lg text-xs">
+                            <p><strong>Debug:</strong> จำนวนสินค้ากำไรดี: {{ top_profit_products|length }}</p>
+                            <p>สินค้าทั้งหมด: {{ total_products }}</p>
+                        </div>
+                        
                         <div class="space-y-3">
                             {% for product in top_profit_products %}
                             <div class="flex items-center justify-between">
@@ -267,7 +274,7 @@
                                     <a href="{% url 'products:product_detail' product.id %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
                                         {{ product.name|truncatechars:30 }}
                                     </a>
-                                    <p class="text-xs text-gray-500">{{ product.sku }}</p>
+                                    <p class="text-xs text-gray-500">{{ product.sku }} | ต้นทุน: ฿{{ product.cost_price|floatformat:2|default:"ไม่ระบุ" }}</p>
                                 </div>
                                 <div class="text-right">
                                     <span class="text-sm font-medium text-green-600">{{ product.profit_margin|floatformat:1 }}%</span>
@@ -275,7 +282,15 @@
                                 </div>
                             </div>
                             {% empty %}
-                            <p class="text-gray-500 text-sm">ไม่มีข้อมูลสินค้ากำไรดี</p>
+                            <div class="text-center py-6">
+                                <p class="text-gray-500 text-sm mb-2">ไม่มีข้อมูลสินค้ากำไรดี</p>
+                                <p class="text-xs text-gray-400">
+                                    เหตุผลที่เป็นไปได้:<br>
+                                    • สินค้าไม่มีข้อมูลต้นทุน (cost_price)<br>
+                                    • ราคาขาย (price_a) น้อยกว่าหรือเท่ากับต้นทุน<br>
+                                    • ไม่มีสินค้าในระบบ
+                                </p>
+                            </div>
                             {% endfor %}
                         </div>
                     </div>

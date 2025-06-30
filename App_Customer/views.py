@@ -188,16 +188,34 @@ def customer_detail(request, customer_id):
     
     # ข้อมูลออเดอร์ (ถ้ามี)
     try:
-        from App_OrderingProductForSale.models import Order
-        recent_orders = Order.objects.filter(customer=customer).order_by('-created_at')[:5]
-        total_orders = Order.objects.filter(customer=customer).count()
-        total_order_amount = Order.objects.filter(customer=customer).aggregate(
-            total=Sum('total_amount')
-        )['total'] or 0
+        from App_OrderingProductForSale.models import OrderRequest, Invoice
+        # ดึงออเดอร์ของลูกค้า
+        recent_orders = OrderRequest.objects.filter(customer=customer).order_by('-created_at')[:5]
+        total_orders = OrderRequest.objects.filter(customer=customer).count()
+        
+        # คำนวณยอดขายรวมจากใบแจ้งหนี้
+        total_order_amount = Invoice.objects.filter(
+            order_request__customer=customer
+        ).aggregate(total=Sum('grand_total'))['total'] or 0
+        
+        # ออเดอร์ที่รอดำเนินการ
+        pending_orders = OrderRequest.objects.filter(
+            customer=customer, 
+            status=OrderRequest.Status.PENDING
+        ).count()
+        
+        # ออเดอร์ที่เสร็จสิ้นแล้ว
+        completed_orders = OrderRequest.objects.filter(
+            customer=customer, 
+            status=OrderRequest.Status.COMPLETED
+        ).count()
+        
     except ImportError:
         recent_orders = []
         total_orders = 0
         total_order_amount = 0
+        pending_orders = 0
+        completed_orders = 0
     
     context = {
         'customer': customer,
@@ -205,6 +223,8 @@ def customer_detail(request, customer_id):
         'recent_orders': recent_orders,
         'total_orders': total_orders,
         'total_order_amount': total_order_amount,
+        'pending_orders': pending_orders,
+        'completed_orders': completed_orders,
     }
     
     return render(request, 'customers/customer_detail.html', context)

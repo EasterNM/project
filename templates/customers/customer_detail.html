@@ -3,6 +3,17 @@
 
 {% block title %}{{ customer.name }} - รายละเอียดลูกค้า{% endblock %}
 
+{% block extra_css %}
+<style>
+    .bg-gold-100 { background-color: #fef3c7; }
+    .text-gold-800 { color: #92400e; }
+    .bg-silver-100 { background-color: #f1f5f9; }
+    .text-silver-800 { color: #475569; }
+    .bg-bronze-100 { background-color: #fef2e8; }
+    .text-bronze-800 { color: #9a3412; }
+</style>
+{% endblock %}
+
 {% block page_title %}รายละเอียดลูกค้า: {{ customer.name }}{% endblock %}
 
 {% block page_actions %}
@@ -234,15 +245,23 @@
                             <div class="space-y-4">
                                 <div>
                                     <div class="text-sm font-medium text-gray-500">จำนวนออเดอร์ทั้งหมด</div>
-                                    <div class="text-2xl font-semibold text-gray-900">{{ total_orders }}</div>
+                                    <div class="text-2xl font-semibold text-gray-900">{{ total_orders|default:0 }}</div>
                                 </div>
                                 <div>
                                     <div class="text-sm font-medium text-gray-500">ยอดขายรวม</div>
-                                    <div class="text-2xl font-semibold text-gray-900">{{ total_order_amount|floatformat:0 }} บาท</div>
+                                    <div class="text-2xl font-semibold text-gray-900">{{ total_order_amount|floatformat:0|default:0 }} บาท</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">ออเดอร์ที่รอดำเนินการ</div>
+                                    <div class="text-2xl font-semibold text-orange-600">{{ pending_orders|default:0 }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">ออเดอร์ที่เสร็จสิ้น</div>
+                                    <div class="text-2xl font-semibold text-green-600">{{ completed_orders|default:0 }}</div>
                                 </div>
                                 <div>
                                     <div class="text-sm font-medium text-gray-500">ประวัติการติดต่อ</div>
-                                    <div class="text-2xl font-semibold text-gray-900">{{ contact_histories.count }}</div>
+                                    <div class="text-2xl font-semibold text-gray-900">{{ contact_histories.count|default:0 }}</div>
                                 </div>
                             </div>
                         </div>
@@ -255,14 +274,52 @@
                             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">ออเดอร์ล่าสุด</h3>
                             <div class="space-y-3">
                                 {% for order in recent_orders %}
-                                <div class="flex justify-between items-center">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                     <div>
                                         <div class="text-sm font-medium text-gray-900">{{ order.order_id }}</div>
-                                        <div class="text-xs text-gray-500">{{ order.created_at|date:"d M Y" }}</div>
+                                        <div class="text-xs text-gray-500">{{ order.created_at|date:"d M Y H:i" }}</div>
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1
+                                            {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                            {% elif order.status == 'PROCESSING' %}bg-blue-100 text-blue-800
+                                            {% elif order.status == 'COMPLETED' %}bg-green-100 text-green-800
+                                            {% elif order.status == 'CANCELLED' %}bg-red-100 text-red-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
                                     </div>
-                                    <div class="text-sm font-semibold text-gray-900">{{ order.total_amount|floatformat:0 }} บาท</div>
+                                    <div class="text-right">
+                                        {% if order.invoice %}
+                                        <div class="text-sm font-semibold text-gray-900">{{ order.invoice.grand_total|floatformat:0 }} บาท</div>
+                                        <div class="text-xs text-gray-500">{{ order.invoice.invoice_number }}</div>
+                                        {% else %}
+                                        <div class="text-sm text-gray-500">ยังไม่มีใบแจ้งหนี้</div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 {% endfor %}
+                            </div>
+                            <div class="mt-4 text-center">
+                                <a href="{% url 'orders:dashboard' %}?customer={{ customer.id }}" class="text-sm text-indigo-600 hover:text-indigo-500">
+                                    ดูออเดอร์ทั้งหมด &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">ออเดอร์ล่าสุด</h3>
+                            <div class="text-center py-8">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900">ยังไม่มีออเดอร์</h3>
+                                <p class="mt-1 text-sm text-gray-500">ลูกค้านี้ยังไม่เคยสั่งซื้อสินค้า</p>
+                                <div class="mt-6">
+                                    <a href="{% url 'orders:order_create' %}?customer={{ customer.id }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                        สร้างออเดอร์ใหม่
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -274,6 +331,40 @@
                             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">ข้อมูลระบบ</h3>
                             <div class="space-y-3">
                                 <div>
+                                    <div class="text-sm font-medium text-gray-500">รหัสลูกค้า</div>
+                                    <div class="text-sm font-mono text-gray-900">{{ customer.customer_code }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">ประเภทลูกค้า</div>
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {% if customer.customer_type == 'individual' %}bg-blue-100 text-blue-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                                        {{ customer.get_customer_type_display }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">ระดับราคา</div>
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {% if customer.price_tier == 'AAA' %}bg-gold-100 text-gold-800{% elif customer.price_tier == 'AA' %}bg-silver-100 text-silver-800{% else %}bg-bronze-100 text-bronze-800{% endif %}">
+                                        {{ customer.get_price_tier_display }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">สถานะ</div>
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {% if customer.status == 'active' %}bg-green-100 text-green-800{% elif customer.status == 'inactive' %}bg-gray-100 text-gray-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ customer.get_status_display }}
+                                    </span>
+                                </div>
+                                {% if customer.credit_limit %}
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">วงเงินเครดิต</div>
+                                    <div class="text-sm text-gray-900">{{ customer.credit_limit|floatformat:0 }} บาท</div>
+                                </div>
+                                {% endif %}
+                                {% if customer.credit_term %}
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">เครดิตเทอม</div>
+                                    <div class="text-sm text-gray-900">{{ customer.credit_term }} วัน</div>
+                                </div>
+                                {% endif %}
+                                <div class="border-t pt-3">
                                     <div class="text-sm font-medium text-gray-500">วันที่สร้าง</div>
                                     <div class="text-sm text-gray-900">{{ customer.created_at|date:"d M Y H:i" }}</div>
                                 </div>

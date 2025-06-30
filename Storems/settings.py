@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'App_OrderingProductForSale',
     'App_Inventory',
     'App_Customer',
-    'simple_history',
+    'simple_history',  # ปิดชั่วคราวเพื่อทดสอบ
     'App_Purchase',
 ]
 

@@ -129,6 +129,13 @@ def product_dashboard(request):
         )
     ).order_by('-profit_margin')[:5]
     
+    # Debug: Print top profit products info
+    print(f"DEBUG: Total products with cost_price > 0: {Product.objects.filter(cost_price__gt=0).count()}")
+    print(f"DEBUG: Total products with price_a > cost_price: {Product.objects.filter(cost_price__gt=0, price_a__gt=F('cost_price')).count()}")
+    print(f"DEBUG: Top profit products count: {top_profit_products.count()}")
+    for product in top_profit_products:
+        print(f"DEBUG: {product.name} - Cost: {product.cost_price}, Price: {product.price_a}, Margin: {product.profit_margin}%")
+    
     # Products that need reorder
     products_need_reorder = Product.objects.filter(reorder_point__gt=0).count()
     
