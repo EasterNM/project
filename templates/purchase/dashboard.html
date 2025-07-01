@@ -187,7 +187,11 @@
                     <ul class="divide-y divide-gray-200">
                         {% for pr in pending_requisitions %}
                             <li>
-                                <a href="{% url 'purchase:requisition_approve' pr_number=pr.pr_number %}" class="block hover:bg-gray-50">
+                                {% if user.is_superuser or user.groups.all|join:", "|lower == "purchase_manager" %}
+                                    <a href="{% url 'purchase:requisition_approve' pr_number=pr.pr_number %}" class="block hover:bg-gray-50">
+                                {% else %}
+                                    <div class="block bg-gray-50 cursor-not-allowed opacity-75">
+                                {% endif %}
                                     <div class="px-4 py-4 sm:px-6">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center">
@@ -206,10 +210,17 @@
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                                     รออนุมัติ
                                                 </span>
+                                                {% if not user.is_superuser and user.groups.all|join:", "|lower != "purchase_manager" %}
+                                                    <p class="text-xs text-gray-400 mt-1">ไม่มีสิทธิ์อนุมัติ</p>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
-                                </a>
+                                {% if user.is_superuser or user.groups.all|join:", "|lower == "purchase_manager" %}
+                                    </a>
+                                {% else %}
+                                    </div>
+                                {% endif %}
                             </li>
                         {% empty %}
                             <li class="px-4 py-4 sm:px-6 text-gray-500">
@@ -235,7 +246,11 @@
                     <ul class="divide-y divide-gray-200">
                         {% for po in pending_orders %}
                             <li>
-                                <a href="{% url 'purchase:order_approve' po_number=po.po_number %}" class="block hover:bg-gray-50">
+                                {% if user.is_superuser or user.groups.all|join:", "|lower == "purchase_manager" %}
+                                    <a href="{% url 'purchase:order_approve' po_number=po.po_number %}" class="block hover:bg-gray-50">
+                                {% else %}
+                                    <div class="block bg-gray-50 cursor-not-allowed opacity-75">
+                                {% endif %}
                                     <div class="px-4 py-4 sm:px-6">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center">
@@ -254,10 +269,17 @@
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                                     รออนุมัติ
                                                 </span>
+                                                {% if not user.is_superuser and user.groups.all|join:", "|lower != "purchase_manager" %}
+                                                    <p class="text-xs text-gray-400 mt-1">ไม่มีสิทธิ์อนุมัติ</p>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
-                                </a>
+                                {% if user.is_superuser or user.groups.all|join:", "|lower == "purchase_manager" %}
+                                    </a>
+                                {% else %}
+                                    </div>
+                                {% endif %}
                             </li>
                         {% empty %}
                             <li class="px-4 py-4 sm:px-6 text-gray-500">
